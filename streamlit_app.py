@@ -256,14 +256,16 @@ if not st.session_state.auth:
 @st.cache_data
 def load_data():
     try:
-        import requests, tempfile, os
-        url = "https://raw.githubusercontent.com/SwingEdgeLab/swingEdge-dashboard/main/bottom_bounce.xlsx"
-        r = requests.get(url)
-        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
-        tmp.write(r.content)
-        tmp.close()
-        wb = openpyxl.load_workbook(tmp.name, data_only=True)
-        os.unlink(tmp.name)
+        import requests
+        import re, requests as req2
+        # Find latest BB file in repo
+        api = req2.get("https://api.github.com/repos/SwingEdgeLab/swingEdge-dashboard/contents/").json()
+        bb_files = [f['name'] for f in api if isinstance(f, dict) and f['name'].startswith('SwingEdge_BottomBounce') and f['name'].endswith('.xlsx')]
+        bb_files.sort(reverse=True)
+        filename = bb_files[0] if bb_files else 'bottom_bounce.xlsx'
+        url = f"https://github.com/SwingEdgeLab/swingEdge-dashboard/raw/main/{filename}"
+        r = requests.get(url, headers={"Accept": "application/octet-stream"})
+        wb = openpyxl.load_workbook(BytesIO(r.content), data_only=True)
     except FileNotFoundError:
         return None, None
     
