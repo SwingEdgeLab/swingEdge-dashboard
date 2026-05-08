@@ -256,7 +256,14 @@ if not st.session_state.auth:
 @st.cache_data
 def load_data():
     try:
-        wb = openpyxl.load_workbook("bottom_bounce.xlsx", data_only=True)
+        import requests, tempfile, os
+        url = "https://raw.githubusercontent.com/SwingEdgeLab/swingEdge-dashboard/main/bottom_bounce.xlsx"
+        r = requests.get(url)
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
+        tmp.write(r.content)
+        tmp.close()
+        wb = openpyxl.load_workbook(tmp.name, data_only=True)
+        os.unlink(tmp.name)
     except FileNotFoundError:
         return None, None
     
