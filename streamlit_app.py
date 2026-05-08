@@ -8,7 +8,7 @@ warnings.filterwarnings('ignore')
 
 st.set_page_config(
     page_title="SwingEdge Pro — Member Portal",
-    page_icon="🐺",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -712,7 +712,7 @@ elif st.session_state.page == "bottom_bounce":
                         search = st.text_input("", key=f"s_{key}", placeholder="Search symbol...")
                     if search:
                         df = df[df['Symbol'].astype(str).str.contains(search.upper(), na=False)]
-                    st.dataframe(df, height=min(750, 55 + len(df)*35), hide_index=True, use_container_width=True)
+                    st.dataframe(df, height=min(900, max(400, len(df)*38)), hide_index=True, use_container_width=True)
                     buf = BytesIO()
                     df.to_excel(buf, index=False)
                     with c2:
