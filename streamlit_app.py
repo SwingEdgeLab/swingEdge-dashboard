@@ -2,217 +2,329 @@ import streamlit as st
 import pandas as pd
 import openpyxl
 from io import BytesIO
+import requests
 import warnings
 warnings.filterwarnings('ignore')
 
 st.set_page_config(
-    page_title="SwingEdge Pro — Bottom Bounce",
-    page_icon="⚡",
+    page_title="SwingEdge Pro — Member Portal",
+    page_icon="🐺",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400&family=Barlow+Condensed:wght@300;400;500;600;700;800;900&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-    --black: #0a0a0a;
-    --dark: #111111;
-    --card: #181818;
-    --border: #222222;
+    --black: #080808;
+    --dark: #0e0e0e;
+    --card: #141414;
+    --card2: #1a1a1a;
+    --border: #242424;
+    --border2: #2e2e2e;
     --gold: #f5a623;
-    --gold2: #fbbf24;
-    --white: #ffffff;
-    --muted: #888888;
+    --gold2: #ffd066;
+    --white: #f0f0f0;
+    --muted: #666666;
+    --muted2: #999999;
     --green: #22c55e;
+    --navy: #1a2035;
 }
 
 html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Barlow', sans-serif !important;
     background-color: var(--black) !important;
     color: var(--white) !important;
 }
 .stApp { background-color: var(--black) !important; }
 #MainMenu, footer, header { visibility: hidden; }
-section[data-testid="stSidebar"] { display: none; }
+section[data-testid="stSidebar"] { display: none !important; }
 
-/* ── TOP NAV ── */
-.top-nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    background: rgba(10,10,10,0.95);
-    backdrop-filter: blur(10px);
+/* ── NAV ── */
+.nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: rgba(8,8,8,0.97);
     border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    z-index: 999;
+    padding: 0 2.5rem;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    z-index: 9999;
+    backdrop-filter: blur(20px);
 }
+.nav-brand {
+    display: flex; align-items: center; gap: 10px;
+}
+.nav-wolf { font-size: 1.4rem; }
 .nav-logo {
-    font-size: 1rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.05rem;
     font-weight: 800;
-    letter-spacing: -0.5px;
+    letter-spacing: 3px;
     color: var(--white);
+    text-transform: uppercase;
 }
-.nav-logo .dot { color: var(--gold); }
-.nav-badge {
-    background: var(--gold);
-    color: #000;
-    font-size: 0.6rem;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 3px;
-    margin-left: 6px;
-    letter-spacing: 0.5px;
-}
+.nav-logo span { color: var(--gold); }
 .nav-right {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Barlow Condensed', sans-serif;
     font-size: 0.7rem;
+    letter-spacing: 2px;
     color: var(--muted);
+    text-transform: uppercase;
 }
-
-/* ── PAGE BODY ── */
-.page-body { padding-top: 72px; padding-left: 1rem; padding-right: 1rem; }
 
 /* ── LOGIN ── */
-.login-wrap {
+.login-page {
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-top: 56px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--black);
+    padding-top: 60px;
 }
 .login-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 4px;
     padding: 3rem 2.5rem;
-    width: 100%;
-    max-width: 400px;
+    width: 100%; max-width: 420px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.login-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.login-wolf { font-size: 3rem; margin-bottom: 1rem; }
+.login-brand {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.3rem; font-weight: 800;
+    letter-spacing: 4px; text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+.login-brand span { color: var(--gold); }
+.login-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.62rem; letter-spacing: 2px;
+    color: var(--muted); text-transform: uppercase;
+    margin-bottom: 2.5rem;
+}
+.login-divider {
+    width: 40px; height: 1px;
+    background: var(--gold); margin: 0 auto 2rem;
+}
+
+/* ── HOME PAGE ── */
+.home-hero {
+    padding: 6rem 2.5rem 3rem;
     text-align: center;
 }
-.login-icon {
-    width: 56px; height: 56px;
-    background: var(--gold);
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1.5rem;
-    font-size: 1.5rem;
+.hero-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem; letter-spacing: 3px;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 1.5rem;
 }
-.login-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.25rem; }
-.login-sub { color: var(--muted); font-size: 0.8rem; margin-bottom: 2rem; font-family: 'Space Mono', monospace; }
-.login-err { color: #ef4444; font-size: 0.8rem; margin-top: 0.5rem; }
-
-/* ── SCAN HEADER ── */
-.scan-header {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
+.hero-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 3.5rem; font-weight: 300;
+    letter-spacing: 6px; text-transform: uppercase;
+    line-height: 1; color: var(--white);
+    margin-bottom: 0.5rem;
 }
-.scan-title { font-size: 1rem; font-weight: 700; color: var(--gold); }
-.scan-meta { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); display:flex; gap:1.5rem; flex-wrap:wrap; }
-.scan-meta span b { color: var(--white); }
+.hero-title strong { font-weight: 800; color: var(--gold); }
+.hero-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem; letter-spacing: 4px;
+    color: var(--muted); text-transform: uppercase;
+    margin-top: 1.5rem;
+}
 
-/* ── METRIC CARDS ── */
-.metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
-.m-card {
-    background: var(--card);
+/* ── SCAN GRID ── */
+.scans-section {
+    padding: 0 2.5rem 4rem;
+    max-width: 1400px; margin: 0 auto;
+}
+.section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem; letter-spacing: 3px;
+    color: var(--muted); text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+.scan-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1rem;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 3rem;
+}
+.scan-card {
+    background: var(--card);
+    padding: 1.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+}
+.scan-card:hover { background: var(--card2); }
+.scan-card.active:hover { background: #1a1500; }
+.scan-card.active { border-left: 2px solid var(--gold); }
+.scan-card.coming { opacity: 0.5; cursor: default; }
+.scan-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+.scan-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--white); margin-bottom: 0.4rem;
+}
+.scan-desc {
+    font-size: 0.78rem; color: var(--muted2);
+    line-height: 1.5; margin-bottom: 1rem;
+}
+.scan-status {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.6rem; letter-spacing: 2px;
+    text-transform: uppercase; font-weight: 700;
+}
+.scan-status.live { color: var(--gold); }
+.scan-status.soon { color: var(--muted); }
+.scan-count {
+    position: absolute; top: 1.75rem; right: 1.75rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.5rem; font-weight: 800;
+    color: var(--gold); opacity: 0.3;
+}
+.scan-arrow {
+    position: absolute; bottom: 1.75rem; right: 1.75rem;
+    color: var(--gold); font-size: 1rem; opacity: 0;
+    transition: opacity 0.2s;
+}
+.scan-card.active:hover .scan-arrow { opacity: 1; }
+
+/* ── DASHBOARD ── */
+.dash-header {
+    padding: 5rem 2.5rem 1.5rem;
+}
+.dash-back {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem; letter-spacing: 2px;
+    color: var(--muted); text-transform: uppercase;
+    cursor: pointer; margin-bottom: 1.5rem;
+    display: inline-block;
+}
+.dash-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2rem; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--white); margin-bottom: 0.25rem;
+}
+.dash-title span { color: var(--gold); }
+.dash-meta {
+    font-size: 0.78rem; color: var(--muted2);
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 1px;
+}
+
+.metrics-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px; background: var(--border);
+    margin: 0 2.5rem 1px;
+    border: 1px solid var(--border);
+    border-radius: 4px 4px 0 0; overflow: hidden;
+}
+.metric {
+    background: var(--card);
+    padding: 1.25rem 1rem;
     text-align: center;
-    transition: border-color 0.2s;
 }
-.m-card:hover { border-color: var(--gold); }
-.m-card.combo { border-color: var(--gold); background: #1a1500; }
-.m-num { font-size: 2.2rem; font-weight: 900; color: var(--gold); line-height: 1; }
-.m-combo { color: var(--gold2); }
-.m-label { font-size: 0.65rem; color: var(--muted); margin-top: 6px; letter-spacing: 0.5px; font-weight: 600; }
+.metric.highlight { background: #110f00; }
+.metric-n {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2.5rem; font-weight: 900;
+    color: var(--gold); line-height: 1;
+}
+.metric-n.gold2 { color: var(--gold2); }
+.metric-l {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.6rem; letter-spacing: 2px;
+    color: var(--muted); text-transform: uppercase;
+    margin-top: 4px; font-weight: 600;
+}
 
 /* ── TABS ── */
 .stTabs [data-baseweb="tab-list"] {
     background: var(--card) !important;
-    border-radius: 10px 10px 0 0 !important;
     border-bottom: 1px solid var(--gold) !important;
-    gap: 0 !important;
-    padding: 0 !important;
+    gap: 0 !important; padding: 0 !important;
+    border-radius: 0 !important;
 }
 .stTabs [data-baseweb="tab"] {
     background: transparent !important;
-    color: var(--muted) !important;
-    font-weight: 600 !important;
-    font-size: 0.82rem !important;
-    padding: 0.7rem 1.2rem !important;
+    color: var(--muted2) !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 0.78rem !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    padding: 0.75rem 1.5rem !important;
     border-radius: 0 !important;
-    letter-spacing: 0.2px !important;
 }
 .stTabs [aria-selected="true"] {
     background: var(--gold) !important;
     color: #000 !important;
-    font-weight: 800 !important;
-    border-radius: 8px 8px 0 0 !important;
 }
 .stTabs [data-baseweb="tab-panel"] {
     background: var(--card) !important;
     border: 1px solid var(--border) !important;
     border-top: none !important;
-    border-radius: 0 0 10px 10px !important;
-    padding: 1rem !important;
+    padding: 1.25rem !important;
+    border-radius: 0 0 4px 4px !important;
 }
 
-/* ── INPUTS ── */
+/* ── INPUTS / BUTTONS ── */
 .stTextInput input {
-    background: #1a1a1a !important;
-    border: 1px solid var(--border) !important;
+    background: var(--dark) !important;
+    border: 1px solid var(--border2) !important;
     color: var(--white) !important;
-    border-radius: 8px !important;
+    border-radius: 3px !important;
+    font-family: 'Barlow', sans-serif !important;
     font-size: 0.85rem !important;
 }
-.stTextInput input:focus { border-color: var(--gold) !important; box-shadow: 0 0 0 2px rgba(245,166,35,0.15) !important; }
-
-/* ── BUTTONS ── */
+.stTextInput input:focus { border-color: var(--gold) !important; }
 .stButton button {
     background: var(--gold) !important;
     color: #000 !important;
-    font-weight: 700 !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-weight: 800 !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
     border: none !important;
-    border-radius: 8px !important;
-    font-size: 0.85rem !important;
+    border-radius: 3px !important;
 }
 .stDownloadButton button {
     background: transparent !important;
     color: var(--gold) !important;
     border: 1px solid var(--gold) !important;
-    font-weight: 600 !important;
-    border-radius: 8px !important;
-    font-size: 0.8rem !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 1px !important;
+    border-radius: 3px !important;
 }
 
-/* ── DATAFRAME ── */
-.stDataFrame { border-radius: 8px !important; overflow: hidden !important; }
-iframe { border-radius: 8px !important; }
-
-/* ── FOOTER ── */
 .footer {
     text-align: center;
-    color: #333;
-    font-size: 0.65rem;
-    font-family: 'Space Mono', monospace;
-    margin-top: 3rem;
-    padding-bottom: 2rem;
-    letter-spacing: 1px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.6rem; letter-spacing: 2px;
+    color: var(--border2); text-transform: uppercase;
+    padding: 2rem 0 3rem;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -222,160 +334,249 @@ PASSWORD = "SwingEdge@2026"
 
 if "auth" not in st.session_state:
     st.session_state.auth = False
+if "page" not in st.session_state:
+    st.session_state.page = "home"
 
-# ── NAV BAR ──────────────────────────────────────────────────
+# ── NAV ──────────────────────────────────────────────────────
 st.markdown("""
-<div class="top-nav">
-  <div class="nav-logo">● SwingEdge<span class="dot"> Pro</span><span class="nav-badge">PRO</span></div>
-  <div class="nav-right">NSE · 1304 STOCKS · DAILY SCANS</div>
+<div class="nav">
+  <div class="nav-brand">
+    <span class="nav-wolf">🐺</span>
+    <span class="nav-logo">Swing<span>Edge</span>Pro</span>
+  </div>
+  <div class="nav-right">SwingEdgePro.in · Member Portal</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── LOGIN GATE ────────────────────────────────────────────────
+# ── LOGIN ─────────────────────────────────────────────────────
 if not st.session_state.auth:
-    st.markdown('<div style="height:15vh"></div>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1.2, 1])
+    st.markdown('<div style="height:12vh"></div>', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 1.1, 1])
     with col2:
         st.markdown("""
         <div class="login-card">
-          <div class="login-icon">⚡</div>
-          <div class="login-title">SwingEdge Pro</div>
-          <div class="login-sub">BOTTOM BOUNCE · MEMBER ACCESS</div>
+          <div class="login-wolf">🐺</div>
+          <div class="login-brand">Swing<span>Edge</span>Pro</div>
+          <div class="login-tag">Member Access · Daily Scans</div>
+          <div class="login-divider"></div>
         </div>
         """, unsafe_allow_html=True)
-        pwd = st.text_input("", type="password", placeholder="Enter your password...", label_visibility="collapsed")
-        if st.button("Access Dashboard →", use_container_width=True):
+        pwd = st.text_input("", type="password", placeholder="Enter member password...", label_visibility="collapsed")
+        if st.button("ACCESS PORTAL →", use_container_width=True):
             if pwd == PASSWORD:
                 st.session_state.auth = True
                 st.rerun()
             else:
-                st.error("Incorrect password. Please try again.")
+                st.error("Incorrect password.")
+        st.markdown("""
+        <div style="text-align:center; margin-top:1.5rem;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.6rem; letter-spacing:2px; color:#444; text-transform:uppercase;">
+            ALIGN WITH MOMENTUM · EXECUTE WITH AN EDGE
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
     st.stop()
 
-# ── LOAD DATA ─────────────────────────────────────────────────
-@st.cache_data
-def load_data():
-    try:
-        import requests
-        import re, requests as req2
-        # Find latest BB file in repo
-        api = req2.get("https://api.github.com/repos/SwingEdgeLab/swingEdge-dashboard/contents/").json()
-        bb_files = [f['name'] for f in api if isinstance(f, dict) and f['name'].startswith('SwingEdge_BottomBounce') and f['name'].endswith('.xlsx')]
-        bb_files.sort(reverse=True)
-        filename = bb_files[0] if bb_files else 'bottom_bounce.xlsx'
-        url = f"https://github.com/SwingEdgeLab/swingEdge-dashboard/raw/main/{filename}"
-        r = requests.get(url, headers={"Accept": "application/octet-stream"})
-        wb = openpyxl.load_workbook(BytesIO(r.content), data_only=True)
-    except FileNotFoundError:
-        return None, None
-    
-    ws_info = wb['📅 Scan Info']
-    info = {}
-    for row in ws_info.iter_rows(min_row=2, values_only=True):
-        if row[0] and row[1]:
-            info[str(row[0])] = str(row[1])
+# ── SCAN CONFIG ───────────────────────────────────────────────
+SCANS = [
+    {
+        "key": "bottom_bounce",
+        "icon": "📊",
+        "name": "Bottom Bounce",
+        "desc": "EMA crossover recovery — stocks emerging from stage 1 base with volume confirmation",
+        "status": "live",
+        "sheets": {
+            'T0': '👀 T0 — Pre-Recovery',
+            'T1': '🌱 T1 — 10W Cross 20W',
+            'T2': '🔥 T2 — 10W Cross 40W',
+            'T3': '🚀 T3 — 20W Cross 40W',
+            'COMBO': '⚡ COMBO T2+T3',
+        },
+        "tab_labels": lambda c: [f"T0 ({c['T0']})", f"T1 ({c['T1']})", f"T2 ({c['T2']})", f"T3 ({c['T3']})", f"COMBO ({c['COMBO']})"],
+        "desc_map": {
+            'T0': 'Pre-Recovery — Gap narrowing, EMAs still inverted',
+            'T1': 'Early Cross — 10W crossed above 20W',
+            'T2': 'Momentum — 10W crossed above 40W',
+            'T3': 'Trend Restored — 20W crossed above 40W',
+            'COMBO': 'High Conviction — T2 + T3 both fired this week',
+        }
+    },
+    {"key": "rs_explosion", "icon": "🚀", "name": "RS Explosion", "desc": "Relative strength breakout — stocks showing institutional accumulation with RS surge above 70", "status": "soon"},
+    {"key": "52w_high", "icon": "🏔️", "name": "52W High Breakout", "desc": "Stocks breaking out of multi-week bases near 52-week highs with volume expansion", "status": "soon"},
+    {"key": "accumulation", "icon": "🏦", "name": "Accumulation", "desc": "Silent institutional buying — 3+ up days vs down days with 1.5x volume ratio", "status": "soon"},
+    {"key": "ath_scanner", "icon": "⚡", "name": "ATH Scanner", "desc": "Stocks within 5% of all-time highs with Stage 2 structure and RS ≥ 70", "status": "soon"},
+    {"key": "ema200_cross", "icon": "📈", "name": "200 EMA Cross", "desc": "Fresh crossovers above the 200 EMA with RS confirmation and volume surge", "status": "soon"},
+    {"key": "deep_base", "icon": "🔭", "name": "Deep Base Recovery", "desc": "Long consolidation breakout — stocks recovering from extended Stage 1 bases", "status": "soon"},
+    {"key": "50ema_shakeout", "icon": "💥", "name": "50 EMA Shakeout", "desc": "Stage 2 leaders retesting 50 EMA — high-conviction pullback entry setups", "status": "soon"},
+]
 
-    sheet_map = {
-        'T0': '👀 T0 — Pre-Recovery',
-        'T1': '🌱 T1 — 10W Cross 20W',
-        'T2': '🔥 T2 — 10W Cross 40W',
-        'T3': '🚀 T3 — 20W Cross 40W',
-        'COMBO': '⚡ COMBO T2+T3',
+# ── HOME PAGE ─────────────────────────────────────────────────
+if st.session_state.page == "home":
+    st.markdown("""
+    <div class="home-hero">
+      <div class="hero-tag">🐺 SwingEdgePro.in · Daily Intelligence</div>
+      <div class="hero-title">Align With <strong>Momentum</strong></div>
+      <div class="hero-title" style="font-size:2rem; margin-top:0.25rem;">Execute With An Edge</div>
+      <div class="hero-sub">NSE · 1304 Stocks · Systematic Scans · Updated Daily</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="scans-section">', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">— Scan Intelligence Suite</div>', unsafe_allow_html=True)
+
+    # Build grid HTML
+    grid_html = '<div class="scan-grid">'
+    for i, scan in enumerate(SCANS):
+        is_live = scan['status'] == 'live'
+        card_class = "scan-card active" if is_live else "scan-card coming"
+        status_html = f'<span class="scan-status live">● Live</span>' if is_live else '<span class="scan-status soon">○ Coming Soon</span>'
+        arrow = '<span class="scan-arrow">→</span>' if is_live else ''
+        count_html = f'<span class="scan-count">0{i+1}</span>'
+        grid_html += f"""
+        <div class="{card_class}">
+          {count_html}
+          <div class="scan-icon">{scan['icon']}</div>
+          <div class="scan-name">{scan['name']}</div>
+          <div class="scan-desc">{scan['desc']}</div>
+          {status_html}
+          {arrow}
+        </div>
+        """
+    grid_html += '</div>'
+    st.markdown(grid_html, unsafe_allow_html=True)
+
+    st.markdown('<div style="height:1.5rem"></div>', unsafe_allow_html=True)
+
+    # Buttons for live scans
+    cols = st.columns(len([s for s in SCANS if s['status'] == 'live']))
+    live_scans = [s for s in SCANS if s['status'] == 'live']
+    for col, scan in zip(cols, live_scans):
+        with col:
+            if st.button(f"Open {scan['name']} →", key=f"open_{scan['key']}", use_container_width=True):
+                st.session_state.page = scan['key']
+                st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">SwingEdgePro.in · Confidential · Member Use Only · © 2026</div>', unsafe_allow_html=True)
+
+# ── BOTTOM BOUNCE DASHBOARD ───────────────────────────────────
+elif st.session_state.page == "bottom_bounce":
+
+    @st.cache_data(ttl=300)
+    def load_bb():
+        try:
+            api = requests.get("https://api.github.com/repos/SwingEdgeLab/swingEdge-dashboard/contents/").json()
+            bb_files = sorted([f['name'] for f in api if isinstance(f, dict) and f['name'].startswith('SwingEdge_BottomBounce') and f['name'].endswith('.xlsx')], reverse=True)
+            filename = bb_files[0] if bb_files else 'bottom_bounce.xlsx'
+            url = f"https://github.com/SwingEdgeLab/swingEdge-dashboard/raw/main/{filename}"
+            r = requests.get(url, headers={"Accept": "application/octet-stream"})
+            wb = openpyxl.load_workbook(BytesIO(r.content), data_only=True)
+
+            ws_info = wb['📅 Scan Info']
+            info = {}
+            for row in ws_info.iter_rows(min_row=2, values_only=True):
+                if row[0] and row[1]:
+                    info[str(row[0])] = str(row[1])
+
+            sheet_map = {
+                'T0': '👀 T0 — Pre-Recovery',
+                'T1': '🌱 T1 — 10W Cross 20W',
+                'T2': '🔥 T2 — 10W Cross 40W',
+                'T3': '🚀 T3 — 20W Cross 40W',
+                'COMBO': '⚡ COMBO T2+T3',
+            }
+            data = {}
+            for key, sheetname in sheet_map.items():
+                if sheetname in wb.sheetnames:
+                    ws = wb[sheetname]
+                    rows = list(ws.iter_rows(values_only=True))
+                    if len(rows) < 2:
+                        data[key] = pd.DataFrame()
+                        continue
+                    headers = [str(h) if h is not None else f'_c{i}' for i, h in enumerate(rows[0])]
+                    df = pd.DataFrame(rows[1:], columns=headers)
+                    if headers[0].startswith('_c'):
+                        df = df.iloc[:, 1:]
+                    df = df[df['Symbol'].notna()]
+                    data[key] = df
+                else:
+                    data[key] = pd.DataFrame()
+            return data, info
+        except Exception as e:
+            return None, None
+
+    if st.button("← Back to Portal", key="back"):
+        st.session_state.page = "home"
+        st.rerun()
+
+    with st.spinner("Loading scan data..."):
+        data, info = load_bb()
+
+    if data is None:
+        st.error("Could not load scan data. Please check GitHub repo.")
+        st.stop()
+
+    scan_date = info.get('Scan Date', '—')
+    run_time = info.get('Run Time', '—')
+    counts = {k: len(data.get(k, pd.DataFrame())) for k in ['T0','T1','T2','T3','COMBO']}
+    total = sum(counts[k] for k in ['T0','T1','T2','T3'])
+
+    st.markdown(f"""
+    <div class="dash-header">
+      <div class="dash-title">📊 Bottom <span>Bounce</span></div>
+      <div class="dash-meta">EMA Crossover Recovery Scanner · {scan_date} · {run_time} IST · 1304 stocks</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div class="metrics-strip">
+      <div class="metric"><div class="metric-n">{counts['T0']}</div><div class="metric-l">👀 T0 Pre-Recovery</div></div>
+      <div class="metric"><div class="metric-n">{counts['T1']}</div><div class="metric-l">🌱 T1 Early Cross</div></div>
+      <div class="metric"><div class="metric-n">{counts['T2']}</div><div class="metric-l">🔥 T2 Momentum</div></div>
+      <div class="metric"><div class="metric-n">{counts['T3']}</div><div class="metric-l">🚀 T3 Trend Restored</div></div>
+      <div class="metric highlight"><div class="metric-n gold2">{counts['COMBO']}</div><div class="metric-l">⚡ Combo T2+T3</div></div>
+    </div>
+    <div style="margin: 0 2.5rem 1.5rem; height:1px; background:var(--border);"></div>
+    """, unsafe_allow_html=True)
+
+    stage_keys = ['T0','T1','T2','T3','COMBO']
+    desc_map = {
+        'T0': 'Pre-Recovery — Gap narrowing, EMAs still inverted',
+        'T1': 'Early Cross — 10W has crossed above 20W',
+        'T2': 'Momentum — 10W has crossed above 40W',
+        'T3': 'Trend Restored — 20W has crossed above 40W',
+        'COMBO': 'High Conviction — T2 + T3 both fired this week',
     }
-    data = {}
-    for key, sheetname in sheet_map.items():
-        if sheetname in wb.sheetnames:
-            ws = wb[sheetname]
-            rows = list(ws.iter_rows(values_only=True))
-            if len(rows) < 2:
-                data[key] = pd.DataFrame()
-                continue
-            headers = [str(h) if h is not None else f'_col{i}' for i, h in enumerate(rows[0])]
-            df = pd.DataFrame(rows[1:], columns=headers)
-            if headers[0].startswith('_col'):
-                df = df.iloc[:, 1:]
-            df = df[df['Symbol'].notna()]
-            data[key] = df
-        else:
-            data[key] = pd.DataFrame()
-    return data, info
 
-data, info = load_data()
+    with st.container():
+        st.markdown('<div style="padding: 0 2.5rem;">', unsafe_allow_html=True)
+        tabs = st.tabs([
+            f"T0  ({counts['T0']})",
+            f"T1  ({counts['T1']})",
+            f"T2  ({counts['T2']})",
+            f"T3  ({counts['T3']})",
+            f"COMBO  ({counts['COMBO']})",
+        ])
+        for tab, key in zip(tabs, stage_keys):
+            with tab:
+                df = data.get(key, pd.DataFrame())
+                if df.empty:
+                    st.info("No signals for this stage today.")
+                else:
+                    st.caption(f"_{desc_map[key]}_")
+                    c1, c2 = st.columns([4, 1])
+                    with c1:
+                        search = st.text_input("", key=f"s_{key}", placeholder="Search symbol...")
+                    if search:
+                        df = df[df['Symbol'].astype(str).str.contains(search.upper(), na=False)]
+                    st.dataframe(df, height=min(550, 55 + len(df)*35), hide_index=True)
+                    buf = BytesIO()
+                    df.to_excel(buf, index=False)
+                    with c2:
+                        st.download_button(f"Export {key}", data=buf.getvalue(),
+                            file_name=f"BB_{key}_{scan_date}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key=f"dl_{key}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-if data is None:
-    st.error("⚠️ No scan data found. Please upload bottom_bounce.xlsx to the GitHub repo.")
-    st.stop()
-
-scan_date = info.get('Scan Date', '—')
-run_time = info.get('Run Time', '—')
-counts = {k: len(data.get(k, pd.DataFrame())) for k in ['T0','T1','T2','T3','COMBO']}
-total = sum(counts[k] for k in ['T0','T1','T2','T3'])
-
-st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
-
-# ── SCAN HEADER ───────────────────────────────────────────────
-st.markdown(f"""
-<div class="scan-header">
-  <div class="scan-title">📊 Bottom Bounce — EMA Crossover Scanner</div>
-  <div class="scan-meta">
-    <span>📅 <b>{scan_date}</b></span>
-    <span>🕐 <b>{run_time} IST</b></span>
-    <span>🌐 <b>1304 stocks</b></span>
-    <span>🎯 <b>{total} signals</b></span>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── METRICS ───────────────────────────────────────────────────
-st.markdown(f"""
-<div class="metrics">
-  <div class="m-card"><div class="m-num">{counts['T0']}</div><div class="m-label">👀 T0 PRE-RECOVERY</div></div>
-  <div class="m-card"><div class="m-num">{counts['T1']}</div><div class="m-label">🌱 T1 EARLY CROSS</div></div>
-  <div class="m-card"><div class="m-num">{counts['T2']}</div><div class="m-label">🔥 T2 MOMENTUM</div></div>
-  <div class="m-card"><div class="m-num">{counts['T3']}</div><div class="m-label">🚀 T3 TREND RESTORED</div></div>
-  <div class="m-card combo"><div class="m-num m-combo">{counts['COMBO']}</div><div class="m-label">⚡ COMBO T2+T3</div></div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── TABS ──────────────────────────────────────────────────────
-stage_keys = ['T0','T1','T2','T3','COMBO']
-stage_desc = {
-    'T0': 'Pre-Recovery — Gap narrowing, 10W & 20W still below 40W',
-    'T1': 'Early Cross — 10W has crossed above 20W this week',
-    'T2': 'Momentum — 10W has crossed above 40W',
-    'T3': 'Trend Restored — 20W has crossed above 40W',
-    'COMBO': 'High Conviction — Both T2 + T3 triggered this week',
-}
-tabs = st.tabs([
-    f"👀 T0  ({counts['T0']})",
-    f"🌱 T1  ({counts['T1']})",
-    f"🔥 T2  ({counts['T2']})",
-    f"🚀 T3  ({counts['T3']})",
-    f"⚡ COMBO  ({counts['COMBO']})",
-])
-
-for tab, key in zip(tabs, stage_keys):
-    with tab:
-        df = data.get(key, pd.DataFrame())
-        if df.empty:
-            st.info("No signals for this stage today.")
-        else:
-            st.caption(f"_{stage_desc[key]}_")
-            col1, col2 = st.columns([3,1])
-            with col1:
-                search = st.text_input("", key=f"s_{key}", placeholder="🔍 Search symbol...")
-            if search:
-                df = df[df['Symbol'].astype(str).str.contains(search.upper(), na=False)]
-            st.dataframe(df, height=min(550, 55 + len(df)*35), hide_index=True)
-            buf = BytesIO()
-            df.to_excel(buf, index=False)
-            with col2:
-                st.download_button(
-                    f"⬇ Export {key}",
-                    data=buf.getvalue(),
-                    file_name=f"BB_{key}_{scan_date}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    key=f"dl_{key}"
-                )
-
-st.markdown('<div class="footer">SWINGEDGE PRO · CONFIDENTIAL · FOR MEMBER USE ONLY · © 2026</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">SwingEdgePro.in · Confidential · Member Use Only · © 2026</div>', unsafe_allow_html=True)
