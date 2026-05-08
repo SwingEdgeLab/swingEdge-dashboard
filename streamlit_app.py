@@ -656,21 +656,20 @@ elif st.session_state.page == "bottom_bounce":
     total = sum(counts[k] for k in ['T0','T1','T2','T3'])
 
     st.markdown(f"""
-    <div class="dash-header">
-      <div class="dash-title">📊 Bottom <span>Bounce</span></div>
-      <div class="dash-meta">EMA Crossover Recovery Scanner · {scan_date} · {run_time} IST · 1304 stocks</div>
+    <div style="padding: 4.5rem 1rem 0.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+      <div>
+        <span style="font-family:'Barlow Condensed',sans-serif; font-size:1.1rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#f0f0f0;">📊 Bottom <span style='color:#f5a623;'>Bounce</span></span>
+        <span style="font-size:0.72rem; color:#666; margin-left:1rem; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;">{scan_date} · {run_time} IST · 1304 stocks</span>
+      </div>
+      <div style="display:flex; gap:1.5rem; font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; letter-spacing:1px;">
+        <span style="color:#888;">T0 <b style="color:#f5a623;">{counts['T0']}</b></span>
+        <span style="color:#888;">T1 <b style="color:#f5a623;">{counts['T1']}</b></span>
+        <span style="color:#888;">T2 <b style="color:#f5a623;">{counts['T2']}</b></span>
+        <span style="color:#888;">T3 <b style="color:#f5a623;">{counts['T3']}</b></span>
+        <span style="color:#888;">COMBO <b style="color:#fbbf24;">{counts['COMBO']}</b></span>
+        <span style="color:#888;">TOTAL <b style="color:#f5a623;">{total}</b></span>
+      </div>
     </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown(f"""
-    <div class="metrics-strip">
-      <div class="metric"><div class="metric-n">{counts['T0']}</div><div class="metric-l">👀 T0 Pre-Recovery</div></div>
-      <div class="metric"><div class="metric-n">{counts['T1']}</div><div class="metric-l">🌱 T1 Early Cross</div></div>
-      <div class="metric"><div class="metric-n">{counts['T2']}</div><div class="metric-l">🔥 T2 Momentum</div></div>
-      <div class="metric"><div class="metric-n">{counts['T3']}</div><div class="metric-l">🚀 T3 Trend Restored</div></div>
-      <div class="metric highlight"><div class="metric-n gold2">{counts['COMBO']}</div><div class="metric-l">⚡ Combo T2+T3</div></div>
-    </div>
-    <div style="margin: 0 2.5rem 1.5rem; height:1px; background:var(--border);"></div>
     """, unsafe_allow_html=True)
 
     stage_keys = ['T0','T1','T2','T3','COMBO']
