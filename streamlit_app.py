@@ -350,6 +350,16 @@ section[data-testid="stSidebar"] { display: none !important; }
     border-radius: 3px !important;
 }
 
+/* Fullscreen fix */
+[data-testid="stFullScreenFrame"] {
+    background: #080808 !important;
+}
+.fullscreen-wrapper {
+    background: #080808 !important;
+}
+iframe[title="st.dataframe"] {
+    background: #080808 !important;
+}
 .footer {
     text-align: center;
     font-family: 'Barlow Condensed', sans-serif;
@@ -702,7 +712,7 @@ elif st.session_state.page == "bottom_bounce":
                         search = st.text_input("", key=f"s_{key}", placeholder="Search symbol...")
                     if search:
                         df = df[df['Symbol'].astype(str).str.contains(search.upper(), na=False)]
-                    st.dataframe(df, height=min(550, 55 + len(df)*35), hide_index=True)
+                    st.dataframe(df, height=min(750, 55 + len(df)*35), hide_index=True, use_container_width=True)
                     buf = BytesIO()
                     df.to_excel(buf, index=False)
                     with c2:
