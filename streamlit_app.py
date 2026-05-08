@@ -419,6 +419,13 @@ if not st.session_state.auth:
 # ── SCAN CONFIG ───────────────────────────────────────────────
 SCANS = [
     {
+        "key": "indicator",
+        "icon": "⚡",
+        "name": "SwingEdge Pro Ultimate",
+        "desc": "6-in-1 TradingView indicator. One glance to know if a stock deserves your watchlist.",
+        "status": "live",
+    },
+    {
         "key": "bottom_bounce",
         "icon": "📊",
         "name": "Bottom Bounce",
@@ -536,6 +543,54 @@ if st.session_state.page == "home":
                         st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">SwingEdgePro.in · Confidential · Member Use Only · © 2026</div>', unsafe_allow_html=True)
+
+# ── INDICATOR PAGE ───────────────────────────────────────────
+elif st.session_state.page == "indicator":
+
+    if st.button("← Back to Portal", key="back_ind"):
+        st.session_state.page = "home"
+        st.rerun()
+
+    st.markdown("""
+    <div class="dash-header">
+      <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.65rem; letter-spacing:3px; color:#f5a623; text-transform:uppercase; margin-bottom:0.75rem;">+ SwingEdge Pro Indicator</div>
+      <div style="font-size:2.5rem; font-weight:800; color:#f0f0f0; line-height:1.1; margin-bottom:0.5rem;">One indicator.<br><em style="color:#f5a623; font-style:italic;">Complete stock</em><br>intelligence.</div>
+      <div style="font-size:0.85rem; color:#888; max-width:500px; margin-bottom:1.5rem; line-height:1.6;">Built on TradingView. Source protected. Every metric you need to qualify a stock for your watchlist — merged into one powerful, private indicator.</div>
+      <div style="background:#1a1a1a; border-left:3px solid #f5a623; padding:1rem 1.25rem; border-radius:4px; max-width:500px; margin-bottom:2rem;">
+        <em style="font-size:0.85rem; color:#ccc;">"The only indicator that tells you in one glance whether a stock deserves to be on your watchlist or not."</em>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1, 1])
+    with col2:
+        st.markdown("""
+        <div style="background:#141414; border:1px solid #2e2e2e; border-radius:12px; padding:2rem; margin-top:2rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.25rem;">
+            <div style="width:4px; height:1.2rem; background:#f5a623; border-radius:2px;"></div>
+            <div style="font-weight:800; font-size:1rem; color:#f0f0f0;">SwingEdge Pro Ultimate</div>
+          </div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.6rem; letter-spacing:2px; color:#f5a623; text-transform:uppercase; margin-bottom:1.5rem; padding-left:1rem;">+ 6-IN-1 INDICATOR</div>
+          <div style="display:flex; flex-direction:column; gap:0;">
+            %s
+          </div>
+          <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid #242424; display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-size:0.72rem; color:#666;">🔒 Source Protected · Not for resale</div>
+            <div style="font-size:0.78rem; font-weight:700; color:#f5a623;">SwingEdge Pro</div>
+          </div>
+        </div>
+        """ % "".join([
+            f"""<div style="display:flex; justify-content:space-between; align-items:center; padding:0.85rem 0; border-bottom:1px solid #1e1e1e;">
+              <div style="display:flex; gap:0.75rem; align-items:center;">
+                <span style="font-family:'Barlow Condensed',sans-serif; font-size:0.7rem; color:#555; font-weight:600;">0{i+1}</span>
+                <span style="font-size:0.88rem; font-weight:600; color:#f0f0f0;">{name}</span>
+              </div>
+              <span style="color:#22c55e; font-size:0.8rem;">✓</span>
+            </div>"""
+            for i, name in enumerate(["Trend Levels", "Pace Quality", "Recovery %", "Relative Volume", "Money Flow Quality", "Strength Score"])
+        ]), unsafe_allow_html=True)
+
     st.markdown('<div class="footer">SwingEdgePro.in · Confidential · Member Use Only · © 2026</div>', unsafe_allow_html=True)
 
 # ── BOTTOM BOUNCE DASHBOARD ───────────────────────────────────
