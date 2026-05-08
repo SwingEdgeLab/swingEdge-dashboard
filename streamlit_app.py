@@ -58,22 +58,20 @@ section[data-testid="stSidebar"] { display: none !important; }
 .nav-brand {
     display: flex; align-items: center; gap: 10px;
 }
-.nav-wolf { font-size: 1.4rem; }
 .nav-logo {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: 3px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
     color: var(--white);
-    text-transform: uppercase;
 }
-.nav-logo span { color: var(--gold); }
-.nav-right {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.7rem;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
+.nav-logo span { color: var(--muted2); font-weight: 400; }
+.nav-link {
+    font-size: 0.82rem; color: var(--muted2); cursor: pointer;
+}
+.nav-cta {
+    background: var(--gold); color: #000;
+    font-size: 0.78rem; font-weight: 700;
+    padding: 6px 14px; border-radius: 4px; cursor: pointer;
 }
 
 /* ── LOGIN ── */
@@ -156,6 +154,39 @@ section[data-testid="stSidebar"] { display: none !important; }
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--border);
 }
+.home-hero .hero-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem; letter-spacing: 3px;
+    color: var(--muted2); text-transform: uppercase;
+    margin-bottom: 1.5rem;
+}
+.home-hero .hero-title {
+    font-size: 2.8rem; font-weight: 800;
+    line-height: 1.1; color: var(--white);
+    margin-bottom: 0.1rem;
+}
+.home-hero .hero-title em {
+    font-style: italic; color: var(--gold);
+    font-weight: 800;
+}
+.home-hero .hero-sub {
+    font-size: 0.9rem; color: var(--muted2);
+    max-width: 500px; margin: 1.5rem auto 0;
+    line-height: 1.6;
+}
+.features-row {
+    display: flex; gap: 1rem;
+    padding: 2rem 2.5rem 0;
+    max-width: 1400px; margin: 0 auto;
+}
+.feat-card {
+    flex: 1; background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.5rem;
+}
+.feat-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+.feat-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; }
+.feat-desc { font-size: 0.75rem; color: var(--muted2); line-height: 1.5; }
 .scan-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -341,10 +372,18 @@ if "page" not in st.session_state:
 st.markdown("""
 <div class="nav">
   <div class="nav-brand">
-    <span class="nav-wolf">🐺</span>
-    <span class="nav-logo">Swing<span>Edge</span>Pro</span>
+    <span style="color:#f5a623; font-size:0.6rem;">●</span>
+    <span class="nav-logo">SwingEdge<span>Pro</span></span>
   </div>
-  <div class="nav-right">SwingEdgePro.in · Member Portal</div>
+  <div style="display:flex; gap:2rem; align-items:center;">
+    <span class="nav-link">Indicator</span>
+    <span class="nav-link">Why It Works</span>
+    <span class="nav-link">The Proof</span>
+  </div>
+  <div style="display:flex; gap:1rem; align-items:center;">
+    <span class="nav-link">Log in</span>
+    <span class="nav-cta">Member Portal</span>
+  </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -355,8 +394,8 @@ if not st.session_state.auth:
     with col2:
         st.markdown("""
         <div class="login-card">
-          <div class="login-wolf">🐺</div>
-          <div class="login-brand">Swing<span>Edge</span>Pro</div>
+          <div style="font-size:0.6rem; color:#f5a623; letter-spacing:2px; margin-bottom:0.5rem;">● SWINGEDGEPRO.IN</div>
+          <div class="login-brand">SwingEdge<span>Pro</span></div>
           <div class="login-tag">Member Access · Daily Scans</div>
           <div class="login-divider"></div>
         </div>
@@ -414,47 +453,68 @@ SCANS = [
 if st.session_state.page == "home":
     st.markdown("""
     <div class="home-hero">
-      <div class="hero-tag">🐺 SwingEdgePro.in · Daily Intelligence</div>
-      <div class="hero-title">Align With <strong>Momentum</strong></div>
-      <div class="hero-title" style="font-size:2rem; margin-top:0.25rem;">Execute With An Edge</div>
-      <div class="hero-sub">NSE · 1304 Stocks · Systematic Scans · Updated Daily</div>
+      <div class="hero-tag">RECLAIM YOUR EDGE</div>
+      <div class="hero-title">Designed for the <em>serious</em></div>
+      <div class="hero-title">momentum trader.</div>
+      <div class="hero-sub">We do the heavy lifting so you can focus on what matters — finding the right stocks at the right time.</div>
     </div>
+
+    <div class="features-row">
+      <div class="feat-card">
+        <div class="feat-icon">🚫</div>
+        <div class="feat-name">Eliminate Dead Stocks</div>
+        <div class="feat-desc">Only stocks showing real strength, momentum and volume qualify. No more buying into weakness.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔗</div>
+        <div class="feat-name">Connect the Signals</div>
+        <div class="feat-desc">6 powerful metrics combined into one indicator. EMA, RS, Volume, ADR% — all in one glance.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💡</div>
+        <div class="feat-name">Instant Clarity</div>
+        <div class="feat-desc">Know immediately if a stock deserves your attention. No more second-guessing or manual checks.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎯</div>
+        <div class="feat-name">Impulse + Tightness</div>
+        <div class="feat-desc">Built around the exact setup that produces explosive moves — coiling before the breakout.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⏱️</div>
+        <div class="feat-name">Save Hours Daily</div>
+        <div class="feat-desc">What used to take hours of manual scanning now takes seconds. Your edge, automated.</div>
+      </div>
+    </div>
+
+    <div style="height:3rem;"></div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="scans-section">', unsafe_allow_html=True)
+    st.markdown('<div style="padding: 0 1rem;">', unsafe_allow_html=True)
     st.markdown('<div class="section-label">— Scan Intelligence Suite</div>', unsafe_allow_html=True)
 
-    # Build grid HTML
-    grid_html = '<div class="scan-grid">'
-    for i, scan in enumerate(SCANS):
-        is_live = scan['status'] == 'live'
-        card_class = "scan-card active" if is_live else "scan-card coming"
-        status_html = f'<span class="scan-status live">● Live</span>' if is_live else '<span class="scan-status soon">○ Coming Soon</span>'
-        arrow = '<span class="scan-arrow">→</span>' if is_live else ''
-        count_html = f'<span class="scan-count">0{i+1}</span>'
-        grid_html += f"""
-        <div class="{card_class}">
-          {count_html}
-          <div class="scan-icon">{scan['icon']}</div>
-          <div class="scan-name">{scan['name']}</div>
-          <div class="scan-desc">{scan['desc']}</div>
-          {status_html}
-          {arrow}
-        </div>
-        """
-    grid_html += '</div>'
-    st.markdown(grid_html, unsafe_allow_html=True)
-
-    st.markdown('<div style="height:1.5rem"></div>', unsafe_allow_html=True)
-
-    # Buttons for live scans
-    cols = st.columns(len([s for s in SCANS if s['status'] == 'live']))
-    live_scans = [s for s in SCANS if s['status'] == 'live']
-    for col, scan in zip(cols, live_scans):
-        with col:
-            if st.button(f"Open {scan['name']} →", key=f"open_{scan['key']}", use_container_width=True):
-                st.session_state.page = scan['key']
-                st.rerun()
+    # Render scan cards in 3-column grid using st.columns
+    rows = [SCANS[i:i+3] for i in range(0, len(SCANS), 3)]
+    for row in rows:
+        cols = st.columns(3)
+        for col, scan in zip(cols, row):
+            with col:
+                is_live = scan['status'] == 'live'
+                border = "border-left: 3px solid #f5a623;" if is_live else "opacity: 0.5;"
+                status = "● LIVE" if is_live else "○ COMING SOON"
+                status_color = "#f5a623" if is_live else "#666"
+                st.markdown(f"""
+                <div style="background:#141414; {border} padding:1.5rem; border-radius:4px; margin-bottom:1px; min-height:180px;">
+                  <div style="font-size:1.5rem; margin-bottom:0.75rem;">{scan['icon']}</div>
+                  <div style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#f0f0f0; margin-bottom:0.4rem;">{scan['name']}</div>
+                  <div style="font-size:0.75rem; color:#888; line-height:1.5; margin-bottom:1rem;">{scan['desc']}</div>
+                  <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.6rem; letter-spacing:2px; font-weight:700; color:{status_color};">{status}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                if is_live:
+                    if st.button(f"Open {scan['name']} →", key=f"open_{scan['key']}", use_container_width=True):
+                        st.session_state.page = scan['key']
+                        st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div class="footer">SwingEdgePro.in · Confidential · Member Use Only · © 2026</div>', unsafe_allow_html=True)
