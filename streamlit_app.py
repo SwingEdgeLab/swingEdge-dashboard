@@ -490,6 +490,25 @@ if st.session_state.page == "home":
     <div style="height:3rem;"></div>
     """, unsafe_allow_html=True)
 
+    # ── MEMBER LOGIN SECTION ──
+    st.markdown('<div id="member-portal" style="padding: 3rem 2.5rem; text-align:center; border-top: 1px solid #242424;">', unsafe_allow_html=True)
+    st.markdown("""
+    <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.65rem; letter-spacing:3px; color:#888; text-transform:uppercase; margin-bottom:1rem;">— Member Portal</div>
+    <div style="font-family:'Barlow',sans-serif; font-size:1.5rem; font-weight:800; color:#f0f0f0; margin-bottom:0.5rem;">Access Your Daily Scans</div>
+    <div style="font-size:0.82rem; color:#888; margin-bottom:2rem;">Enter your member password to view today's scan results</div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        pwd = st.text_input("", type="password", placeholder="Enter member password...", label_visibility="collapsed", key="home_pwd")
+        if st.button("ACCESS PORTAL →", use_container_width=True, key="home_login"):
+            if pwd == PASSWORD:
+                st.session_state.auth = True
+                st.rerun()
+            else:
+                st.error("Incorrect password.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
     st.markdown('<div style="padding: 0 1rem;">', unsafe_allow_html=True)
     st.markdown('<div class="section-label">— Scan Intelligence Suite</div>', unsafe_allow_html=True)
 
