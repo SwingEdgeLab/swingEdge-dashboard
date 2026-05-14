@@ -459,15 +459,157 @@ SCANS = [
         }
     },
     {"key": "rs_explosion", "icon": "🚀", "name": "RS Explosion", "desc": "Relative strength breakout — stocks showing institutional accumulation with RS surge above 70", "status": "soon"},
-    {"key": "52w_high", "icon": "🏔️", "name": "52W High Breakout", "desc": "Stocks breaking out of multi-week bases near 52-week highs with volume expansion", "status": "soon"},
-    {"key": "accumulation", "icon": "🏦", "name": "Accumulation", "desc": "Silent institutional buying — 3+ up days vs down days with 1.5x volume ratio", "status": "soon"},
-    {"key": "ath_scanner", "icon": "⚡", "name": "ATH Scanner", "desc": "Stocks within 5% of all-time highs with Stage 2 structure and RS ≥ 70", "status": "soon"},
-    {"key": "ema200_cross", "icon": "📈", "name": "200 EMA Cross", "desc": "Fresh crossovers above the 200 EMA with RS confirmation and volume surge", "status": "soon"},
-    {"key": "deep_base", "icon": "🔭", "name": "Deep Base Recovery", "desc": "Long consolidation breakout — stocks recovering from extended Stage 1 bases", "status": "soon"},
-    {"key": "50ema_shakeout", "icon": "💥", "name": "50 EMA Shakeout", "desc": "Stage 2 leaders retesting 50 EMA — high-conviction pullback entry setups", "status": "soon"},
+    {"key": "52w_high", "icon": "🏔️", "name": "52W High Breakout", "desc": "Stocks breaking out of multi-week bases near 52-week highs with volume expansion", "status": "live"},
+    {"key": "accumulation", "icon": "🏦", "name": "Accumulation", "desc": "Silent institutional buying — 3+ up days vs down days with 1.5x volume ratio", "status": "live"},
+    {"key": "ath_scanner", "icon": "⚡", "name": "ATH Scanner", "desc": "Stocks within 5% of all-time highs with Stage 2 structure and RS ≥ 70", "status": "live"},
+    {"key": "ema200_cross", "icon": "📈", "name": "200 EMA Cross", "desc": "Fresh crossovers above the 200 EMA with RS confirmation and volume surge", "status": "live"},
+    {"key": "deep_base", "icon": "🔭", "name": "Deep Base Recovery", "desc": "Long consolidation breakout — stocks recovering from extended Stage 1 bases", "status": "live"},
+    {"key": "50ema_shakeout", "icon": "💥", "name": "50 EMA Shakeout", "desc": "Stage 2 leaders retesting 50 EMA — high-conviction pullback entry setups", "status": "live"},
     {"key": "market_verdict", "icon": "📡", "name": "Market Verdict", "desc": "Enter today's breadth readings — get your market health score and position sizing guidance", "status": "live"},
     {"key": "score_guide", "icon": "📋", "name": "Score Guide", "desc": "Reference guide for SwingEdge Pro composite scores and what each level means", "status": "live"},
 ]
+
+# ── GENERIC SCANNER DASHBOARD HELPER ─────────────────────────
+def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, file_prefix, desc_map=None):
+    """
+    Generic dashboard renderer for scanners that push Excel files to GitHub.
+    sheet_config: list of (sheet_name_prefix, display_label) tuples
+    file_prefix:  start of the filename pushed to GitHub (e.g. 'ATH_Scanner_v7_')
+    """
+    if st.button("← Back to Portal", key=f"back_{page_key}"):
+        st.session_state.page = "home"
+        st.rerun()
+
+    @st.cache_data(ttl=300)
+    def load_scanner(prefix):
+        try:
+            api = requests.get(
+                "https://api.github.com/repos/SwingEdgeLab/swingEdge-dashboard/contents/"
+            ).json()
+            files = sorted(
+                [f['name'] for f in api
+                 if isinstance(f, dict) and f['name'].startswith(prefix) and f['name'].endswith('.xlsx')],
+                reverse=True
+            )
+            if not files:
+                return None, "No file found", "—"
+            url = f"https://github.com/SwingEdgeLab/swingEdge-dashboard/raw/main/{files[0]}"
+            r   = requests.get(url, headers={"Accept": "application/octet-stream"})
+            wb  = openpyxl.load_workbook(BytesIO(r.content), data_only=True)
+
+            # ── Try to read Scan Info sheet ──
+            scan_date, run_time = "—", "—"
+            if "📅 Scan Info" in wb.sheetnames:
+                ws_info = wb["📅 Scan Info"]
+                for row in ws_info.iter_rows(min_row=2, values_only=True):
+                    if not row or len(row) < 2 or not row[0]:
+                        continue
+                    k, v = str(row[0]).strip(), str(row[1]).strip() if row[1] else ""
+                    if k == "Scan Date":
+                        scan_date = v
+                    elif k == "Run Time":
+                        run_time = v
+                    elif k in ("Scan Run", "Last Run"):
+                        # format: "14-May-2026  15:32 IST"
+                        parts = v.split("  ")
+                        scan_date = parts[0].strip() if parts else v
+                        run_time  = parts[1].strip() if len(parts) > 1 else "—"
+
+            # ── Load each tab sheet ──
+            data = {}
+            for sheet_prefix, _ in sheet_config:
+                matched = next((sn for sn in wb.sheetnames if sn.startswith(sheet_prefix)), None)
+                if matched:
+                    ws   = wb[matched]
+                    rows = list(ws.iter_rows(values_only=True))
+                    if len(rows) < 2:
+                        data[sheet_prefix] = pd.DataFrame()
+                        continue
+                    hdrs = [str(h) if h is not None else f"_c{i}" for i, h in enumerate(rows[0])]
+                    df   = pd.DataFrame(rows[1:], columns=hdrs)
+                    # drop unnamed index column
+                    if hdrs[0].startswith("_c") or hdrs[0] == "Unnamed: 0":
+                        df = df.iloc[:, 1:] if len(df.columns) > 1 else df
+                    if "Symbol" in df.columns:
+                        df = df[df["Symbol"].notna() & (df["Symbol"].astype(str).str.strip() != "")]
+                    data[sheet_prefix] = df
+                else:
+                    data[sheet_prefix] = pd.DataFrame()
+
+            return data, scan_date, run_time
+        except Exception as e:
+            return None, "Error", str(e)
+
+    with st.spinner("Loading scan data..."):
+        data, scan_date, run_time = load_scanner(file_prefix)
+
+    if data is None:
+        st.error(f"Could not load scan data ({run_time}). Ensure the file is pushed to GitHub.")
+        st.stop()
+
+    counts = {sp: len(data.get(sp, pd.DataFrame())) for sp, _ in sheet_config}
+    total  = sum(counts.values())
+
+    pills_html = "".join(
+        f'<span style="color:#888;">{lbl.split("—")[0].strip()} '
+        f'<b style="color:{accent_color};">{counts[sp]}</b></span>'
+        for sp, lbl in sheet_config
+    )
+    st.markdown(f"""
+    <div style="padding:4.5rem 1rem 0.5rem; display:flex; align-items:center;
+                justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+      <div>
+        <span style="font-family:'Barlow Condensed',sans-serif; font-size:1.1rem;
+                     font-weight:800; letter-spacing:2px; text-transform:uppercase;
+                     color:#f0f0f0;">{icon} <span style="color:{accent_color};">{title}</span></span>
+        <span style="font-size:0.72rem; color:#666; margin-left:1rem;
+                     font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;">
+          {scan_date} · {run_time} · 1304 stocks
+        </span>
+      </div>
+      <div style="display:flex; gap:1.5rem; font-family:'Barlow Condensed',sans-serif;
+                  font-size:0.72rem; letter-spacing:1px; flex-wrap:wrap;">
+        {pills_html}
+        <span style="color:#888;">TOTAL <b style="color:{accent_color};">{total}</b></span>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    tab_labels = [f"{lbl.split('—')[0].strip()}  ({counts[sp]})" for sp, lbl in sheet_config]
+    tabs = st.tabs(tab_labels)
+
+    for tab, (sheet_prefix, label) in zip(tabs, sheet_config):
+        with tab:
+            df = data.get(sheet_prefix, pd.DataFrame())
+            if df.empty:
+                st.info("No signals for this category today.")
+            else:
+                if desc_map and sheet_prefix in desc_map:
+                    st.caption(f"_{desc_map[sheet_prefix]}_")
+                c1, c2 = st.columns([4, 1])
+                with c1:
+                    search = st.text_input(
+                        "", key=f"s_{page_key}_{sheet_prefix[:8]}", placeholder="Search symbol..."
+                    )
+                if search and "Symbol" in df.columns:
+                    df = df[df["Symbol"].astype(str).str.contains(search.upper(), na=False)]
+                st.dataframe(df, height=min(900, max(400, len(df) * 38)),
+                             hide_index=True, use_container_width=True)
+                buf = BytesIO()
+                df.to_excel(buf, index=False)
+                with c2:
+                    st.download_button(
+                        "Export", data=buf.getvalue(),
+                        file_name=f"{page_key}_{sheet_prefix[:12]}_{scan_date}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        key=f"dl_{page_key}_{sheet_prefix[:8]}"
+                    )
+
+    st.markdown(
+        '<div class="footer">SwingEdgePro.in · Confidential · Member Use Only · © 2026</div>',
+        unsafe_allow_html=True
+    )
+
 
 # ── HOME PAGE ─────────────────────────────────────────────────
 if st.session_state.page == "home":
@@ -1280,3 +1422,139 @@ elif st.session_state.page == "bottom_bounce":
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="footer">SwingEdgePro.in · Confidential · Member Use Only · © 2026</div>', unsafe_allow_html=True)
+
+# ── ACCUMULATION ──────────────────────────────────────────────
+elif st.session_state.page == "accumulation":
+    render_generic_scanner(
+        page_key     = "accumulation",
+        title        = "Accumulation",
+        icon         = "🏦",
+        accent_color = "#f5a623",
+        file_prefix  = "Accumulation_Scanner_",
+        sheet_config = [
+            ("🎯 Prime Setups",  "Prime Setups — Near ATH + high score"),
+            ("🔥 Elite Accum",   "Elite Accum — Highest conviction"),
+            ("💪 Strong Accum",  "Strong Accum — Solid structure"),
+            ("🌀 Coiling",       "Coiling — Tightening range"),
+            ("📈 Above EMA200",  "Above EMA200 — Trend confirmed"),
+            ("📋 All Qualified", "All Qualified — Full list"),
+        ],
+        desc_map = {
+            "🎯 Prime Setups":  "Near ATH + accumulation score ≥ threshold — highest conviction setups",
+            "🔥 Elite Accum":   "Top-tier accumulation: up days dominating, 1.5x+ volume on buy days",
+            "💪 Strong Accum":  "Strong institutional footprint — consistent volume on up days",
+            "🌀 Coiling":       "Range contraction with accumulation pattern — pre-breakout tightening",
+            "📈 Above EMA200":  "All accumulation signals trading above 200 EMA — trend-confirmed",
+            "📋 All Qualified": "All stocks passing base accumulation criteria",
+        }
+    )
+
+# ── ATH SCANNER ───────────────────────────────────────────────
+elif st.session_state.page == "ath_scanner":
+    render_generic_scanner(
+        page_key     = "ath_scanner",
+        title        = "ATH Scanner",
+        icon         = "⚡",
+        accent_color = "#ffd066",
+        file_prefix  = "ATH_Scanner_v7_",
+        sheet_config = [
+            ("🏅 Combo 5%",       "Combo 5% — Within 5% ATH + quality gates"),
+            ("🏅 Combo 10%",      "Combo 10% — Within 10% ATH + quality gates"),
+            ("🏅 Combo 20%",      "Combo 20% — Within 20% ATH + quality gates"),
+            ("🔥 Within 5% ATH",  "Within 5% ATH — Nearest to all-time high"),
+            ("💪 Within 10% ATH", "Within 10% ATH"),
+            ("✅ Within 20% ATH", "Within 20% ATH"),
+            ("🏆 ATH + Pattern",  "ATH + Pattern — Best technical setups"),
+        ],
+        desc_map = {
+            "🏅 Combo 5%":       "Within 5% of ATH + ADR≥3% + Liquidity≥₹5Cr + EMA50/200 aligned",
+            "🏅 Combo 10%":      "Within 10% of ATH + ADR≥3% + Liquidity≥₹5Cr + EMA50/200 aligned",
+            "🏅 Combo 20%":      "Within 20% of ATH + ADR≥3% + Liquidity≥₹5Cr + EMA50/200 aligned",
+            "🔥 Within 5% ATH":  "Stocks within 5% of their all-time high (ADR≥3% + Liq≥₹5Cr applied)",
+            "💪 Within 10% ATH": "Stocks within 10% of their all-time high",
+            "✅ Within 20% ATH": "Stocks within 20% of their all-time high",
+            "🏆 ATH + Pattern":  "Near-ATH stocks with confirmed patterns (VCP / Inside Bar / 3WT)",
+        }
+    )
+
+# ── 200 EMA CROSS ─────────────────────────────────────────────
+elif st.session_state.page == "ema200_cross":
+    render_generic_scanner(
+        page_key     = "ema200_cross",
+        title        = "200 EMA Cross",
+        icon         = "📈",
+        accent_color = "#22c55e",
+        file_prefix  = "EMA200_Cross_",
+        sheet_config = [
+            ("🔥 Fresh (1-",   "Fresh — Crossed 1-5 days ago"),
+            ("✅ Recent (6-",  "Recent — Crossed 6-20 days ago"),
+            ("📋 All Crosses", "All Crosses — Complete universe"),
+        ],
+        desc_map = {
+            "🔥 Fresh (1-":   "Price crossed above 200 EMA within last 5 days — volume confirmed + RS≥75",
+            "✅ Recent (6-":  "Crosses 6-20 days old — still actionable on pullbacks",
+            "📋 All Crosses": "All 200 EMA crossover signals in the universe",
+        }
+    )
+
+# ── DEEP BASE RECOVERY ────────────────────────────────────────
+elif st.session_state.page == "deep_base":
+    render_generic_scanner(
+        page_key     = "deep_base",
+        title        = "Deep Base Recovery",
+        icon         = "🔭",
+        accent_color = "#60a5fa",
+        file_prefix  = "Deep_Base_Recovery_v1_",
+        sheet_config = [
+            ("🟢 Very Close",   "Very Close — Within 10% of breakout"),
+            ("🔵 Approaching",  "Approaching — Within 25% of breakout"),
+            ("📊 All Deep Base","All — Complete scan results"),
+        ],
+        desc_map = {
+            "🟢 Very Close":   "Stage 1 stocks within 10% of prior base high — imminent breakout candidates",
+            "🔵 Approaching":  "Within 25% of base high — building momentum, early watch",
+            "📊 All Deep Base":"All stocks recovering from extended Stage 1 bases (26+ weeks consolidation)",
+        }
+    )
+
+# ── 52W HIGH BREAKOUT ─────────────────────────────────────────
+elif st.session_state.page == "52w_high":
+    render_generic_scanner(
+        page_key     = "52w_high",
+        title        = "52W High Breakout",
+        icon         = "🏔️",
+        accent_color = "#a78bfa",
+        file_prefix  = "52W_High_Scanner_v1_",
+        sheet_config = [
+            ("🚀 Breaking Now",      "Breaking Now — At 52W high today"),
+            ("🎯 Approaching ≤5%",   "Approaching — Within 5% of 52W high"),
+            ("💥 RS Surge RS≥75",    "RS Surge — RS≥75 with momentum"),
+            ("🏆 Freshout 26W Base", "Freshout — Breaking out of 26W+ base"),
+            ("🔄 ATH Recovery",       "ATH Recovery — Recovering to prior highs"),
+        ],
+        desc_map = {
+            "🚀 Breaking Now":      "Currently printing at or above 52-week high with volume expansion",
+            "🎯 Approaching ≤5%":   "Within 5% of 52-week high — potential breakout setups",
+            "💥 RS Surge RS≥75":    "RS≥75 with price approaching 52-week highs",
+            "🏆 Freshout 26W Base": "Breaking out of a 26+ week base — Weinstein Stage 2 entry",
+            "🔄 ATH Recovery":       "Recovering back toward all-time highs from prior correction",
+        }
+    )
+
+# ── 50 EMA SHAKEOUT ───────────────────────────────────────────
+elif st.session_state.page == "50ema_shakeout":
+    render_generic_scanner(
+        page_key     = "50ema_shakeout",
+        title        = "50 EMA Shakeout",
+        icon         = "💥",
+        accent_color = "#fb923c",
+        file_prefix  = "50EMA_Shakeout_v1_",
+        sheet_config = [
+            ("🔥 Reclaimed Today",    "Reclaimed Today — Bounced off 50 EMA today"),
+            ("🎯 Reclaimed 1-3 Days", "Reclaimed 1-3 Days — Recent bounce"),
+        ],
+        desc_map = {
+            "🔥 Reclaimed Today":    "Stage 2 leaders that touched/undercut 50 EMA and reclaimed it today",
+            "🎯 Reclaimed 1-3 Days": "Reclaimed 50 EMA 1-3 days ago — entry window still open",
+        }
+    )
