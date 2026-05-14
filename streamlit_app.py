@@ -458,7 +458,13 @@ SCANS = [
             'COMBO': 'High Conviction — T2 + T3 both fired this week',
         }
     },
-    {"key": "rs_explosion", "icon": "🚀", "name": "RS Explosion", "desc": "Relative strength breakout — stocks showing institutional accumulation with RS surge above 70", "status": "soon"},
+    {"key": "rs_explosion", "icon": "🚀", "name": "RS Explosion", "desc": "Relative strength breakout — stocks showing institutional accumulation with RS surge above 70", "status": "live"},
+    {"key": "l1_structural", "icon": "🏆", "name": "L1 Structural Quality", "desc": "ELITE / PRIME / STRONG / WATCH — 9-condition Minervini SEPA scoring across the full universe", "status": "live"},
+    {"key": "l2_institutional", "icon": "🏛️", "name": "L2 Institutional Volume", "desc": "CLIMAX / TIER 1 / TIER 2 / WATCH — institutional volume signature detection", "status": "live"},
+    {"key": "rs_screener", "icon": "📡", "name": "RS Screener", "desc": "Relative strength ranked universe — RS90+ elite, structure hunt 65-90, all EMAs aligned", "status": "live"},
+    {"key": "ep_scanner", "icon": "⚡", "name": "EP Scanner", "desc": "Episodic Pivot — EXPLOSIVE / STRONG / VALID — news-driven volume surge setups", "status": "live"},
+    {"key": "htf_scanner", "icon": "🎯", "name": "HTF Scanner", "desc": "High Tight Flag patterns — parabolic base with tight consolidation before next leg", "status": "live"},
+    {"key": "nr_3wtc", "icon": "📐", "name": "3WTC / NR Scanner", "desc": "3-Week Tight Close and Narrow Range patterns — coiling before breakout", "status": "live"},
     {"key": "52w_high", "icon": "🏔️", "name": "52W High Breakout", "desc": "Stocks breaking out of multi-week bases near 52-week highs with volume expansion", "status": "live"},
     {"key": "accumulation", "icon": "🏦", "name": "Accumulation", "desc": "Silent institutional buying — 3+ up days vs down days with 1.5x volume ratio", "status": "live"},
     {"key": "ath_scanner", "icon": "⚡", "name": "ATH Scanner", "desc": "Stocks within 5% of all-time highs with Stage 2 structure and RS ≥ 70", "status": "live"},
@@ -1556,5 +1562,173 @@ elif st.session_state.page == "50ema_shakeout":
         desc_map = {
             "🔥 Reclaimed Today":    "Stage 2 leaders that touched/undercut 50 EMA and reclaimed it today",
             "🎯 Reclaimed 1-3 Days": "Reclaimed 50 EMA 1-3 days ago — entry window still open",
+        }
+    )
+
+# ── RS EXPLOSION ──────────────────────────────────────────────
+elif st.session_state.page == "rs_explosion":
+    render_generic_scanner(
+        page_key     = "rs_explosion",
+        title        = "RS Explosion",
+        icon         = "🚀",
+        accent_color = "#f5a623",
+        file_prefix  = "RS_Explosion_",
+        sheet_config = [
+            ("🔥 Explosive",     "Explosive — Massive RS surge"),
+            ("⚡ Strong",        "Strong — Significant RS jump"),
+            ("💎 Combo RS+ADR",  "Combo — RS surge + ADR≥3%"),
+            ("🚀 EMA200 Crossed","EMA200 Crossed — RS surge + above 200 EMA"),
+            ("📈 Valid",         "Valid — All qualifying RS moves"),
+            ("📊 All Results",   "All Results — Complete universe"),
+        ],
+        desc_map = {
+            "🔥 Explosive":      "RS jumped explosively — institutions aggressively accumulating",
+            "⚡ Strong":         "Strong RS surge — meaningful relative strength improvement",
+            "💎 Combo RS+ADR":   "RS surge with ADR≥3% — volatile enough to trade profitably",
+            "🚀 EMA200 Crossed": "RS surge AND price just crossed above 200 EMA — regime change",
+            "📈 Valid":          "All valid RS explosion signals passing minimum thresholds",
+            "📊 All Results":    "Complete ranked output for the full universe",
+        }
+    )
+
+# ── L1 STRUCTURAL QUALITY ─────────────────────────────────────
+elif st.session_state.page == "l1_structural":
+    render_generic_scanner(
+        page_key     = "l1_structural",
+        title        = "L1 Structural Quality",
+        icon         = "🏆",
+        accent_color = "#ffd066",
+        file_prefix  = "L1_Structural_Quality_",
+        sheet_config = [
+            ("🏆 ELITE",          "ELITE — 9/9 Minervini conditions"),
+            ("⚡ PRIME",          "PRIME — 7-8/9 conditions"),
+            ("✅ STRONG",         "STRONG — 5-6/9 conditions"),
+            ("👁 WATCH",          "WATCH — On radar"),
+            ("⭐ COMBO",          "COMBO — All grades above EMA200"),
+            ("🔥 VPA Confluence", "VPA Confluence — Volume-Price signals"),
+            ("🚀 Momentum Leaders","Momentum Leaders — Percentile ranked MRS"),
+            ("📊 Sector Strength","Sector Strength — Heatmap"),
+            ("📋 ALL",            "ALL — Complete universe"),
+        ],
+        desc_map = {
+            "🏆 ELITE":           "All 9 Minervini SEPA conditions met — highest conviction watchlist",
+            "⚡ PRIME":           "7-8 of 9 conditions met — strong structure, near breakout",
+            "✅ STRONG":          "5-6 of 9 conditions — solid momentum, worth monitoring",
+            "👁 WATCH":           "On radar — improving structure, not yet qualifying",
+            "⭐ COMBO":           "All grades where price is above EMA200 — trend confirmed",
+            "🔥 VPA Confluence":  "Volume-Price Analysis signals — U/D ratio + RVol + VDU",
+            "🚀 Momentum Leaders":"Percentile-ranked MRS composite score — top relative strength leaders",
+            "📊 Sector Strength": "Sector heatmap showing money flow and sector momentum",
+            "📋 ALL":             "Full graded universe — all stocks with scores",
+        }
+    )
+
+# ── L2 INSTITUTIONAL VOLUME ───────────────────────────────────
+elif st.session_state.page == "l2_institutional":
+    render_generic_scanner(
+        page_key     = "l2_institutional",
+        title        = "L2 Institutional Volume",
+        icon         = "🏛️",
+        accent_color = "#22c55e",
+        file_prefix  = "L2_Institutional_Volume_",
+        sheet_config = [
+            ("🔥 CLIMAX",  "CLIMAX — Composite≥85 + heavy volume event"),
+            ("🏆 TIER 1",  "TIER 1 — Composite≥70 + high quality volume"),
+            ("⚡ TIER 2",  "TIER 2 — Composite≥55"),
+            ("👁 WATCH",   "WATCH — Composite≥40"),
+            ("📊 Vol Events","Vol Events — All volume events"),
+            ("📋 ALL",     "ALL — Complete results"),
+        ],
+        desc_map = {
+            "🔥 CLIMAX":    "Highest conviction — composite≥85, HVE/HVY volume fired, VCP structure confirmed",
+            "🏆 TIER 1":    "High quality institutional accumulation — composite≥70 with HVQ event",
+            "⚡ TIER 2":    "Solid institutional interest — composite≥55",
+            "👁 WATCH":     "Early accumulation signal — composite≥40, monitoring stage",
+            "📊 Vol Events":"All volume events detected in the universe",
+            "📋 ALL":       "Complete graded results across all stocks",
+        }
+    )
+
+# ── RS SCREENER ───────────────────────────────────────────────
+elif st.session_state.page == "rs_screener":
+    render_generic_scanner(
+        page_key     = "rs_screener",
+        title        = "RS Screener",
+        icon         = "📡",
+        accent_color = "#a78bfa",
+        file_prefix  = "RS_Screener_v2_",
+        sheet_config = [
+            ("🔥 RS90+ ADR3.5+",       "RS90+ ADR3.5+ — Elite RS with volatility"),
+            ("🎯 Structure Hunt 65-90", "Structure Hunt — RS 65-90 building bases"),
+            ("✅ RS+All EMAs (BEST)",   "RS + All EMAs — Best quality setups"),
+            ("All Stocks Ranked",       "All Stocks Ranked — Full universe by RS"),
+        ],
+        desc_map = {
+            "🔥 RS90+ ADR3.5+":        "RS≥90 + ADR≥3.5% — elite relative strength with enough volatility to trade",
+            "🎯 Structure Hunt 65-90":  "RS 65-90 range — strong but not yet elite, building bases for future breakout",
+            "✅ RS+All EMAs (BEST)":    "RS qualified + price above all 4 EMAs — trend fully confirmed",
+            "All Stocks Ranked":        "Full universe ranked by RS score — spot emerging leaders early",
+        }
+    )
+
+# ── EP SCANNER ────────────────────────────────────────────────
+elif st.session_state.page == "ep_scanner":
+    render_generic_scanner(
+        page_key     = "ep_scanner",
+        title        = "EP Scanner",
+        icon         = "⚡",
+        accent_color = "#f87171",
+        file_prefix  = "EP_Scanner_",
+        sheet_config = [
+            ("🔥 EXPLOSIVE", "EXPLOSIVE — Volume≥10x average"),
+            ("⚡ STRONG EP", "STRONG EP — Volume≥7x average"),
+            ("✅ VALID EP",  "VALID EP — Volume≥3x average"),
+            ("📋 ALL EPs",   "ALL EPs — Every qualifying pivot"),
+        ],
+        desc_map = {
+            "🔥 EXPLOSIVE": "Volume ≥10x average — rare, highest urgency episodic pivot",
+            "⚡ STRONG EP":  "Volume ≥7x average — strong institutional conviction pivot",
+            "✅ VALID EP":   "Volume ≥3x average — valid pivot, worth monitoring for follow-through",
+            "📋 ALL EPs":    "All episodic pivot candidates — complete list",
+        }
+    )
+
+# ── HTF SCANNER ───────────────────────────────────────────────
+elif st.session_state.page == "htf_scanner":
+    render_generic_scanner(
+        page_key     = "htf_scanner",
+        title        = "HTF Scanner",
+        icon         = "🎯",
+        accent_color = "#34d399",
+        file_prefix  = "HTF_Scanner_RELAXED_",
+        sheet_config = [
+            ("HTF Patterns", "HTF Patterns — Confirmed High Tight Flag setups"),
+            ("All Stocks",   "All Stocks — Full scan universe"),
+        ],
+        desc_map = {
+            "HTF Patterns": "Confirmed High Tight Flag — parabolic move followed by tight ≤25% consolidation",
+            "All Stocks":   "Full universe scan results with HTF scoring",
+        }
+    )
+
+# ── 3WTC / NR SCANNER ─────────────────────────────────────────
+elif st.session_state.page == "nr_3wtc":
+    render_generic_scanner(
+        page_key     = "nr_3wtc",
+        title        = "3WTC / NR Scanner",
+        icon         = "📐",
+        accent_color = "#fb923c",
+        file_prefix  = "3WTC_NR_Scanner_v1_2_",
+        sheet_config = [
+            ("3WTC Prime", "3WTC Prime — Tightest closes, highest conviction"),
+            ("3WTC All",   "3WTC All — All 3-Week Tight Close patterns"),
+            ("NR4",        "NR4 — Narrowest range in 4 days"),
+            ("NR7",        "NR7 — Narrowest range in 7 days"),
+        ],
+        desc_map = {
+            "3WTC Prime": "3 consecutive weeks closing within 1.5% of each other — institutional coiling before breakout",
+            "3WTC All":   "All 3-Week Tight Close patterns — price coiling tightly over 3 weeks",
+            "NR4":        "Narrowest daily range in last 4 days — short-term volatility contraction",
+            "NR7":        "Narrowest daily range in last 7 days — stronger volatility contraction signal",
         }
     )
