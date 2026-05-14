@@ -578,7 +578,7 @@ def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, fi
     tab_labels = [f"{lbl.split('—')[0].strip()}  ({counts[sp]})" for sp, lbl in sheet_config]
     tabs = st.tabs(tab_labels)
 
-    for tab, (sheet_prefix, label) in zip(tabs, sheet_config):
+    for tab_idx, (tab, (sheet_prefix, label)) in enumerate(zip(tabs, sheet_config)):
         with tab:
             df = data.get(sheet_prefix, pd.DataFrame())
             if df.empty:
@@ -589,7 +589,7 @@ def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, fi
                 c1, c2 = st.columns([4, 1])
                 with c1:
                     search = st.text_input(
-                        "", key=f"s_{page_key}_{sheet_prefix[:8]}", placeholder="Search symbol..."
+                        "", key=f"s_{page_key}_{tab_idx}", placeholder="Search symbol..."
                     )
                 if search and "Symbol" in df.columns:
                     df = df[df["Symbol"].astype(str).str.contains(search.upper(), na=False)]
@@ -600,9 +600,9 @@ def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, fi
                 with c2:
                     st.download_button(
                         "Export", data=buf.getvalue(),
-                        file_name=f"{page_key}_{sheet_prefix[:12]}_{scan_date}.xlsx",
+                        file_name=f"{page_key}_{tab_idx}_{scan_date}.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        key=f"dl_{page_key}_{sheet_prefix[:8]}"
+                        key=f"dl_{page_key}_{tab_idx}"
                     )
 
     st.markdown(
