@@ -465,6 +465,12 @@ SCANS = [
     {"key": "ep_scanner", "icon": "⚡", "name": "EP Scanner", "desc": "Episodic Pivot — EXPLOSIVE / STRONG / VALID — news-driven volume surge setups", "status": "live"},
     {"key": "htf_scanner", "icon": "🎯", "name": "HTF Scanner", "desc": "High Tight Flag patterns — parabolic base with tight consolidation before next leg", "status": "live"},
     {"key": "nr_3wtc", "icon": "📐", "name": "3WTC / NR Scanner", "desc": "3-Week Tight Close and Narrow Range patterns — coiling before breakout", "status": "live"},
+    {"key": "weekly_scanner", "icon": "📅", "name": "Weekly Scanner", "desc": "Power Breakouts / Valid Breakouts / 3WTC / Inside Week / Mini Coil / NR7 — weekly setups", "status": "live"},
+    {"key": "ultrapro_weekly", "icon": "💎", "name": "UltraPro Weekly", "desc": "ULTRA PRIME / STRONG / WATCH — highest conviction weekly momentum setups", "status": "live"},
+    {"key": "vdu_stage2", "icon": "📶", "name": "VDU Stage 2", "desc": "Volume-Demand-Urgency Stage 2 — Elite / 3WTC / Established / Transition setups", "status": "live"},
+    {"key": "resilient_stack", "icon": "🛡️", "name": "Resilient Stack Reversal", "desc": "Stocks holding EMA stack during market weakness — high relative strength in downturns", "status": "live"},
+    {"key": "market_health", "icon": "🩺", "name": "Market Health Dashboard", "desc": "9-9 Watchlist / 8-9 Monitor / RS Leaders / Rally Quality / N500 Surge — daily breadth", "status": "live"},
+    {"key": "rs_outperformer", "icon": "🥇", "name": "RS Outperformer", "desc": "Stocks outperforming Nifty since a chosen date — Elite / Strong / Mild RS grades", "status": "live"},
     {"key": "52w_high", "icon": "🏔️", "name": "52W High Breakout", "desc": "Stocks breaking out of multi-week bases near 52-week highs with volume expansion", "status": "live"},
     {"key": "accumulation", "icon": "🏦", "name": "Accumulation", "desc": "Silent institutional buying — 3+ up days vs down days with 1.5x volume ratio", "status": "live"},
     {"key": "ath_scanner", "icon": "⚡", "name": "ATH Scanner", "desc": "Stocks within 5% of all-time highs with Stage 2 structure and RS ≥ 70", "status": "live"},
@@ -1730,5 +1736,149 @@ elif st.session_state.page == "nr_3wtc":
             "3WTC All":   "All 3-Week Tight Close patterns — price coiling tightly over 3 weeks",
             "NR4":        "Narrowest daily range in last 4 days — short-term volatility contraction",
             "NR7":        "Narrowest daily range in last 7 days — stronger volatility contraction signal",
+        }
+    )
+
+# ── WEEKLY SCANNER ────────────────────────────────────────────
+elif st.session_state.page == "weekly_scanner":
+    render_generic_scanner(
+        page_key     = "weekly_scanner",
+        title        = "Weekly Scanner",
+        icon         = "📅",
+        accent_color = "#60a5fa",
+        file_prefix  = "Weekly_Scanner_v3_",
+        sheet_config = [
+            ("🏆 Power Breakouts",  "Power Breakouts — Strongest weekly signals"),
+            ("✅ Valid Breakouts",  "Valid Breakouts — All qualifying breakouts"),
+            ("🔒 3WTC",            "3WTC — 3-Week Tight Close"),
+            ("🔲 Inside Week",     "Inside Week — Weekly inside bar"),
+            ("🌀 Mini Coil Daily", "Mini Coil Daily — Daily coiling"),
+            ("🌀 Mini Coil Weekly","Mini Coil Weekly — Weekly coiling"),
+            ("📐 NR7 Tightening",  "NR7 Tightening — Narrowest range in 7 days"),
+        ],
+        desc_map = {
+            "🏆 Power Breakouts":  "Highest conviction weekly breakouts — volume confirmed, RS strong",
+            "✅ Valid Breakouts":  "All qualifying weekly breakout setups",
+            "🔒 3WTC":            "3 consecutive weeks closing within tight range — pre-breakout coil",
+            "🔲 Inside Week":     "This week's range fully inside last week — volatility compression",
+            "🌀 Mini Coil Daily": "Daily mini coil pattern — tightening before next move",
+            "🌀 Mini Coil Weekly":"Weekly mini coil — larger timeframe compression",
+            "📐 NR7 Tightening":  "Narrowest 7-day range — volatility at multi-week lows",
+        }
+    )
+
+# ── ULTRAPRO WEEKLY ───────────────────────────────────────────
+elif st.session_state.page == "ultrapro_weekly":
+    render_generic_scanner(
+        page_key     = "ultrapro_weekly",
+        title        = "UltraPro Weekly",
+        icon         = "💎",
+        accent_color = "#ffd066",
+        file_prefix  = "UltraPro_Weekly_v4_2_",
+        sheet_config = [
+            ("ULTRA PRIME", "ULTRA PRIME — Highest conviction weekly setups"),
+            ("STRONG",      "STRONG — Strong weekly momentum"),
+            ("WATCH",       "WATCH — On radar"),
+            ("All Signals", "All Signals — Complete results"),
+        ],
+        desc_map = {
+            "ULTRA PRIME": "Top-tier weekly momentum — all conditions met with volume confirmation",
+            "STRONG":      "Strong weekly setup — most conditions met",
+            "WATCH":       "Building toward a setup — monitor closely",
+            "All Signals": "Complete UltraPro Weekly scan output",
+        }
+    )
+
+# ── VDU STAGE 2 ───────────────────────────────────────────────
+elif st.session_state.page == "vdu_stage2":
+    render_generic_scanner(
+        page_key     = "vdu_stage2",
+        title        = "VDU Stage 2",
+        icon         = "📶",
+        accent_color = "#34d399",
+        file_prefix  = "VDU_Stage2_Scanner_v2_",
+        sheet_config = [
+            ("🥇 Elite Setups",      "Elite — Highest VDU conviction"),
+            ("🔒 3WTC & 3MTC",       "3WTC & 3MTC — Tight close patterns"),
+            ("📈 Stage2 Established","Stage 2 Established — Confirmed uptrend"),
+            ("🚀 Stage2 Transition", "Stage 2 Transition — Just entering Stage 2"),
+            ("📋 All Qualified",     "All Qualified — Full list"),
+            ("📊 Score Ranked",      "Score Ranked — By VDU composite"),
+        ],
+        desc_map = {
+            "🥇 Elite Setups":       "Top VDU score — strong volume demand urgency in Stage 2 structure",
+            "🔒 3WTC & 3MTC":        "3-Week/Month Tight Close within Stage 2 — highest-probability entry",
+            "📈 Stage2 Established": "Firmly in Stage 2 uptrend — EMA stack aligned, RS strong",
+            "🚀 Stage2 Transition":  "Just crossed into Stage 2 — early entry opportunity",
+            "📋 All Qualified":      "All stocks passing VDU Stage 2 minimum criteria",
+            "📊 Score Ranked":       "Full universe ranked by VDU composite score",
+        }
+    )
+
+# ── RESILIENT STACK REVERSAL ──────────────────────────────────
+elif st.session_state.page == "resilient_stack":
+    render_generic_scanner(
+        page_key     = "resilient_stack",
+        title        = "Resilient Stack Reversal",
+        icon         = "🛡️",
+        accent_color = "#a78bfa",
+        file_prefix  = "Resilient_Stack_Reversal_",
+        sheet_config = [
+            ("🛡 Resilient Reversal", "Resilient Reversal — Held EMA stack during market weakness"),
+        ],
+        desc_map = {
+            "🛡 Resilient Reversal": "Stocks that held their EMA stack while the broader market sold off — highest relative strength in downturns",
+        }
+    )
+
+# ── MARKET HEALTH DASHBOARD ───────────────────────────────────
+elif st.session_state.page == "market_health":
+    render_generic_scanner(
+        page_key     = "market_health",
+        title        = "Market Health Dashboard",
+        icon         = "🩺",
+        accent_color = "#22c55e",
+        file_prefix  = "Market_Health_",
+        sheet_config = [
+            ("🏆 9-9 Watchlist",   "9-9 Watchlist — All 9 Minervini conditions met"),
+            ("👀 8-9 Monitor",     "8-9 Monitor — One condition away"),
+            ("📈 RS Leaders Today","RS Leaders Today — Biggest RS movers"),
+            ("📅 Daily Health Log","Daily Health Log — Breadth history"),
+            ("🔍 Rally Quality",   "Rally Quality — FTD and rally tracker"),
+            ("🚀 N500 Surge",      "N500 Surge — Nifty 500 outliers today"),
+            ("📊 All Stocks",      "All Stocks — Full breadth universe"),
+        ],
+        desc_map = {
+            "🏆 9-9 Watchlist":    "Every stock passing all 9 Minervini SEPA conditions today",
+            "👀 8-9 Monitor":      "Stocks passing 8 of 9 conditions — one trigger away from ELITE",
+            "📈 RS Leaders Today": "Stocks with biggest RS improvement today — emerging leaders",
+            "📅 Daily Health Log": "Historical breadth readings — track market health over time",
+            "🔍 Rally Quality":    "Follow-Through Day detection and rally quality assessment",
+            "🚀 N500 Surge":       "Nifty 500 stocks surging significantly vs the index today",
+            "📊 All Stocks":       "Full universe breadth data — all stocks with health metrics",
+        }
+    )
+
+# ── RS OUTPERFORMER ───────────────────────────────────────────
+elif st.session_state.page == "rs_outperformer":
+    render_generic_scanner(
+        page_key     = "rs_outperformer",
+        title        = "RS Outperformer",
+        icon         = "🥇",
+        accent_color = "#f5a623",
+        file_prefix  = "RS_Outperformer_",
+        sheet_config = [
+            ("Elite RS",  "Elite RS — Strongest outperformers vs Nifty"),
+            ("Strong RS", "Strong RS — Solid outperformance"),
+            ("Mild RS",   "Mild RS — Modest outperformance"),
+            ("All RS",    "All RS — Complete ranked universe"),
+            ("Summary",   "Summary — Period overview"),
+        ],
+        desc_map = {
+            "Elite RS":  "Top-tier stocks that have significantly outperformed Nifty since the chosen start date",
+            "Strong RS": "Strong outperformers — meaningful gap vs Nifty over the period",
+            "Mild RS":   "Mild outperformers — slight edge over Nifty, worth watching",
+            "All RS":    "Full universe ranked by RS outperformance vs Nifty",
+            "Summary":   "Period summary — Nifty return, number of outperformers, top performers",
         }
     )
