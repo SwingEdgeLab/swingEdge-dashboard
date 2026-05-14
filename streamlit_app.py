@@ -485,8 +485,9 @@ SCANS = [
 def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, file_prefix, desc_map=None):
     """
     Generic dashboard renderer for scanners that push Excel files to GitHub.
-    sheet_config: list of (sheet_name_prefix, display_label) tuples
-    file_prefix:  start of the filename pushed to GitHub (e.g. 'ATH_Scanner_v7_')
+    - Downloads the raw .xlsx bytes once from GitHub
+    - Shows a preview dataframe per tab
+    - Download button serves the ORIGINAL styled Excel file as-is
     """
     if st.button("← Back to Portal", key=f"back_{page_key}"):
         st.session_state.page = "home"
@@ -504,30 +505,34 @@ def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, fi
                 reverse=True
             )
             if not files:
-                return None, "No file found", "—"
-            url = f"https://github.com/SwingEdgeLab/swingEdge-dashboard/raw/main/{files[0]}"
-            r   = requests.get(url, headers={"Accept": "application/octet-stream"})
-            wb  = openpyxl.load_workbook(BytesIO(r.content), data_only=True)
+                return None, None, "No file found", "—", "—"
+            fname = files[0]
+            url   = f"https://github.com/SwingEdgeLab/swingEdge-dashboard/raw/main/{fname}"
+            r     = requests.get(url, headers={"Accept": "application/octet-stream"})
+            raw_bytes = r.content                          # ← keep original bytes
+            wb        = openpyxl.load_workbook(BytesIO(raw_bytes), data_only=True)
 
-            # ── Try to read Scan Info sheet ──
+            # ── Read Scan Info sheet ──
             scan_date, run_time = "—", "—"
-            if "📅 Scan Info" in wb.sheetnames:
-                ws_info = wb["📅 Scan Info"]
-                for row in ws_info.iter_rows(min_row=2, values_only=True):
-                    if not row or len(row) < 2 or not row[0]:
-                        continue
-                    k, v = str(row[0]).strip(), str(row[1]).strip() if row[1] else ""
-                    if k == "Scan Date":
-                        scan_date = v
-                    elif k == "Run Time":
-                        run_time = v
-                    elif k in ("Scan Run", "Last Run"):
-                        # format: "14-May-2026  15:32 IST"
-                        parts = v.split("  ")
-                        scan_date = parts[0].strip() if parts else v
-                        run_time  = parts[1].strip() if len(parts) > 1 else "—"
+            for info_sn in ("📅 Scan Info", "Scan Info"):
+                if info_sn in wb.sheetnames:
+                    ws_info = wb[info_sn]
+                    for row in ws_info.iter_rows(min_row=2, values_only=True):
+                        if not row or len(row) < 2 or not row[0]:
+                            continue
+                        k = str(row[0]).strip()
+                        v = str(row[1]).strip() if row[1] else ""
+                        if k == "Scan Date":
+                            scan_date = v
+                        elif k == "Run Time":
+                            run_time = v
+                        elif k in ("Scan Run", "Last Run", "Run Date & Time"):
+                            parts = v.split("  ")
+                            scan_date = parts[0].strip() if parts else v
+                            run_time  = parts[1].strip() if len(parts) > 1 else "—"
+                    break
 
-            # ── Load each tab sheet ──
+            # ── Load preview dataframes per tab ──
             data = {}
             for sheet_prefix, _ in sheet_config:
                 matched = next((sn for sn in wb.sheetnames if sn.startswith(sheet_prefix)), None)
@@ -539,7 +544,6 @@ def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, fi
                         continue
                     hdrs = [str(h) if h is not None else f"_c{i}" for i, h in enumerate(rows[0])]
                     df   = pd.DataFrame(rows[1:], columns=hdrs)
-                    # drop unnamed index column
                     if hdrs[0].startswith("_c") or hdrs[0] == "Unnamed: 0":
                         df = df.iloc[:, 1:] if len(df.columns) > 1 else df
                     if "Symbol" in df.columns:
@@ -548,15 +552,17 @@ def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, fi
                 else:
                     data[sheet_prefix] = pd.DataFrame()
 
-            return data, scan_date, run_time
+            return data, raw_bytes, fname, scan_date, run_time
         except Exception as e:
-            return None, "Error", str(e)
+            return None, None, "Error", str(e), "—"
 
     with st.spinner("Loading scan data..."):
-        data, scan_date, run_time = load_scanner(file_prefix)
+        result = load_scanner(file_prefix)
+
+    data, raw_bytes, fname, scan_date, run_time = result
 
     if data is None:
-        st.error(f"Could not load scan data ({run_time}). Ensure the file is pushed to GitHub.")
+        st.error(f"Could not load scan data ({fname}). Ensure the file is pushed to GitHub.")
         st.stop()
 
     counts = {sp: len(data.get(sp, pd.DataFrame())) for sp, _ in sheet_config}
@@ -567,26 +573,40 @@ def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, fi
         f'<b style="color:{accent_color};">{counts[sp]}</b></span>'
         for sp, lbl in sheet_config
     )
-    st.markdown(f"""
-    <div style="padding:4.5rem 1rem 0.5rem; display:flex; align-items:center;
-                justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
-      <div>
-        <span style="font-family:'Barlow Condensed',sans-serif; font-size:1.1rem;
-                     font-weight:800; letter-spacing:2px; text-transform:uppercase;
-                     color:#f0f0f0;">{icon} <span style="color:{accent_color};">{title}</span></span>
-        <span style="font-size:0.72rem; color:#666; margin-left:1rem;
-                     font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;">
-          {scan_date} · {run_time} · 1304 stocks
-        </span>
-      </div>
-      <div style="display:flex; gap:1.5rem; font-family:'Barlow Condensed',sans-serif;
-                  font-size:0.72rem; letter-spacing:1px; flex-wrap:wrap;">
-        {pills_html}
-        <span style="color:#888;">TOTAL <b style="color:{accent_color};">{total}</b></span>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
 
+    # ── Header row with title + Download Original button ──
+    h1, h2 = st.columns([3, 1])
+    with h1:
+        st.markdown(f"""
+        <div style="padding:4.5rem 0 0.5rem; display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+          <div>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:1.1rem;
+                         font-weight:800; letter-spacing:2px; text-transform:uppercase;
+                         color:#f0f0f0;">{icon} <span style="color:{accent_color};">{title}</span></span>
+            <span style="font-size:0.72rem; color:#666; margin-left:1rem;
+                         font-family:'Barlow Condensed',sans-serif; letter-spacing:1px;">
+              {scan_date} · {run_time} · 1304 stocks
+            </span>
+          </div>
+          <div style="display:flex; gap:1.5rem; font-family:'Barlow Condensed',sans-serif;
+                      font-size:0.72rem; letter-spacing:1px; flex-wrap:wrap; margin-top:0.4rem;">
+            {pills_html}
+            <span style="color:#888;">TOTAL <b style="color:{accent_color};">{total}</b></span>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with h2:
+        st.markdown('<div style="padding-top:4.5rem;"></div>', unsafe_allow_html=True)
+        st.download_button(
+            label="⬇ Download Original Excel",
+            data=raw_bytes,
+            file_name=fname,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"dl_orig_{page_key}",
+            use_container_width=True,
+        )
+
+    # ── Tabs ──
     tab_labels = [f"{lbl.split('—')[0].strip()}  ({counts[sp]})" for sp, lbl in sheet_config]
     tabs = st.tabs(tab_labels)
 
@@ -598,24 +618,13 @@ def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, fi
             else:
                 if desc_map and sheet_prefix in desc_map:
                     st.caption(f"_{desc_map[sheet_prefix]}_")
-                c1, c2 = st.columns([4, 1])
-                with c1:
-                    search = st.text_input(
-                        "", key=f"s_{page_key}_{tab_idx}", placeholder="Search symbol..."
-                    )
+                search = st.text_input(
+                    "", key=f"s_{page_key}_{tab_idx}", placeholder="Search symbol..."
+                )
                 if search and "Symbol" in df.columns:
                     df = df[df["Symbol"].astype(str).str.contains(search.upper(), na=False)]
                 st.dataframe(df, height=min(900, max(400, len(df) * 38)),
                              hide_index=True, use_container_width=True)
-                buf = BytesIO()
-                df.to_excel(buf, index=False)
-                with c2:
-                    st.download_button(
-                        "Export", data=buf.getvalue(),
-                        file_name=f"{page_key}_{tab_idx}_{scan_date}.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        key=f"dl_{page_key}_{tab_idx}"
-                    )
 
     st.markdown(
         '<div class="footer">SwingEdgePro.in · Confidential · Member Use Only · © 2026</div>',
