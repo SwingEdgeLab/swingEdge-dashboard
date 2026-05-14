@@ -372,7 +372,7 @@ iframe[title="st.dataframe"] {
 """, unsafe_allow_html=True)
 
 # ── PASSWORD ──────────────────────────────────────────────────
-PASSWORD = "SwingEdge@2026"
+PASSWORD = "swing2026"
 
 if "auth" not in st.session_state:
     st.session_state.auth = False
