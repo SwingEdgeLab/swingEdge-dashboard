@@ -496,8 +496,11 @@ def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, fi
     @st.cache_data(ttl=300)
     def load_scanner(prefix):
         try:
+            _token = st.secrets.get("GITHUB_TOKEN", "")
+            _auth  = {"Authorization": f"token {_token}"} if _token else {}
             api = requests.get(
-                "https://api.github.com/repos/SwingEdgeLab/swingEdge-dashboard/contents/"
+                "https://api.github.com/repos/SwingEdgeLab/swingEdge-dashboard/contents/",
+                headers=_auth
             ).json()
             files = sorted(
                 [f['name'] for f in api
@@ -507,8 +510,8 @@ def render_generic_scanner(page_key, title, icon, accent_color, sheet_config, fi
             if not files:
                 return None, None, "No file found", "—", "—"
             fname = files[0]
-            url   = f"https://github.com/SwingEdgeLab/swingEdge-dashboard/raw/main/{fname}"
-            r     = requests.get(url, headers={"Accept": "application/octet-stream"})
+            url   = f"https://api.github.com/repos/SwingEdgeLab/swingEdge-dashboard/contents/{fname}"
+            r     = requests.get(url, headers={**_auth, "Accept": "application/vnd.github.raw"})
             raw_bytes = r.content                          # ← keep original bytes
             wb        = openpyxl.load_workbook(BytesIO(raw_bytes), data_only=True)
 
@@ -1329,11 +1332,13 @@ elif st.session_state.page == "bottom_bounce":
     @st.cache_data(ttl=300)
     def load_bb():
         try:
-            api = requests.get("https://api.github.com/repos/SwingEdgeLab/swingEdge-dashboard/contents/").json()
+            _token = st.secrets.get("GITHUB_TOKEN", "")
+            _auth  = {"Authorization": f"token {_token}"} if _token else {}
+            api = requests.get("https://api.github.com/repos/SwingEdgeLab/swingEdge-dashboard/contents/", headers=_auth).json()
             bb_files = sorted([f['name'] for f in api if isinstance(f, dict) and f['name'].startswith('SwingEdge_BottomBounce') and f['name'].endswith('.xlsx')], reverse=True)
             filename = bb_files[0] if bb_files else 'bottom_bounce.xlsx'
-            url = f"https://github.com/SwingEdgeLab/swingEdge-dashboard/raw/main/{filename}"
-            r = requests.get(url, headers={"Accept": "application/octet-stream"})
+            url = f"https://api.github.com/repos/SwingEdgeLab/swingEdge-dashboard/contents/{filename}"
+            r = requests.get(url, headers={**_auth, "Accept": "application/vnd.github.raw"})
             wb = openpyxl.load_workbook(BytesIO(r.content), data_only=True)
 
             ws_info = wb['📅 Scan Info']
