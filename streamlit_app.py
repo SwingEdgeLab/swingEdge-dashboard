@@ -3,6 +3,7 @@ import pandas as pd
 import openpyxl
 from io import BytesIO
 import requests
+import streamlit.components.v1 as components
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -464,6 +465,8 @@ SCANS = [
     {"key": "ema200_cross", "icon": "📈", "name": "200 EMA Cross", "desc": "Fresh crossovers above the 200 EMA with RS confirmation and volume surge", "status": "soon"},
     {"key": "deep_base", "icon": "🔭", "name": "Deep Base Recovery", "desc": "Long consolidation breakout — stocks recovering from extended Stage 1 bases", "status": "soon"},
     {"key": "50ema_shakeout", "icon": "💥", "name": "50 EMA Shakeout", "desc": "Stage 2 leaders retesting 50 EMA — high-conviction pullback entry setups", "status": "soon"},
+    {"key": "market_verdict", "icon": "📡", "name": "Market Verdict", "desc": "Enter today's breadth readings — get your market health score and position sizing guidance", "status": "live"},
+    {"key": "score_guide", "icon": "📋", "name": "Score Guide", "desc": "Reference guide for SwingEdge Pro composite scores and what each level means", "status": "live"},
 ]
 
 # ── HOME PAGE ─────────────────────────────────────────────────
@@ -602,6 +605,560 @@ elif st.session_state.page == "indicator":
         ]), unsafe_allow_html=True)
 
     st.markdown('<div class="footer">SwingEdgePro.in · Confidential · Member Use Only · © 2026</div>', unsafe_allow_html=True)
+
+# ── MARKET VERDICT ────────────────────────────────────────────
+elif st.session_state.page == "market_verdict":
+    if st.button("← Back to Portal", key="back_mv"):
+        st.session_state.page = "home"
+        st.rerun()
+    st.components.v1.html("""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwingEdge Pro - Market Verdict</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0b1220;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  .header { margin-bottom: 2rem; }
+  .header h1 { font-size: 22px; font-weight: 500; color: #f59e0b; margin-bottom: 4px; }
+  .header p { font-size: 13px; color: #64748b; }
+  .inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.25rem; }
+  .input-card {
+    background: #111827;
+    border: 0.5px solid #1e2d45;
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  .input-card label {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .input-card input {
+    width: 100%;
+    font-size: 22px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid #1e2d45;
+    padding: 4px 0;
+    color: #e2e8f0;
+    outline: none;
+  }
+  .input-card input:focus { border-bottom-color: #f59e0b; }
+  .btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    background: #1e2d45;
+    color: #e2e8f0;
+    border: 0.5px solid #334155;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: background 0.2s;
+  }
+  .btn:hover { background: #253548; }
+  .verdict-card {
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 0.5px solid #1e2d45;
+  }
+  .verdict-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 1rem; }
+  .verdict-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .verdict-name { font-size: 28px; font-weight: 500; }
+  .verdict-sub { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+  .score-num { font-size: 38px; font-weight: 500; }
+  .score-denom { font-size: 12px; color: #64748b; }
+  .progress-track { height: 8px; background: #1e2d45; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+  .section {
+    background: #111827;
+    border: 0.5px solid #1e2d45;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .section-title { font-size: 13px; font-weight: 500; margin-bottom: 12px; color: #e2e8f0; }
+  .sizing-text { font-size: 15px; line-height: 1.6; color: #e2e8f0; }
+  .signal-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid #1e2d45; }
+  .signal-row:last-child { border-bottom: none; }
+  .signal-left { display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .signal-name { font-size: 13px; color: #e2e8f0; }
+  .signal-right { text-align: right; }
+  .signal-val { font-size: 13px; font-weight: 500; }
+  .signal-note { font-size: 12px; color: #64748b; margin-left: 8px; }
+  .alert-text { font-size: 14px; line-height: 1.7; color: #e2e8f0; }
+  .footer { margin-top: 2rem; font-size: 11px; color: #334155; text-align: center; }
+  #output { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>SwingEdge Pro — Market Verdict</h1>
+    <p>Enter today's breadth readings to get your market health verdict and position sizing guidance.</p>
+  </div>
+
+  <div class="inputs">
+    <div class="input-card">
+      <label>9/9 Minervini count</label>
+      <input type="number" id="m9" min="0" max="500" value="256">
+    </div>
+    <div class="input-card">
+      <label>% above 200 EMA</label>
+      <input type="number" id="e200" min="0" max="100" value="46">
+    </div>
+    <div class="input-card">
+      <label>% above 50 EMA</label>
+      <input type="number" id="e50" min="0" max="100" value="73">
+    </div>
+    <div class="input-card">
+      <label>% above 20 EMA</label>
+      <input type="number" id="e20" min="0" max="100" value="69">
+    </div>
+    <div class="input-card">
+      <label>% above 10 EMA</label>
+      <input type="number" id="e10" min="0" max="100" value="53">
+    </div>
+  </div>
+
+  <button class="btn" onclick="calculate()">Calculate market verdict</button>
+
+  <div id="output">
+
+    <div class="verdict-card" id="verdict-card">
+      <div class="verdict-top">
+        <div>
+          <div class="verdict-label">Market verdict</div>
+          <div class="verdict-name" id="verdict-name"></div>
+          <div class="verdict-sub" id="verdict-sub"></div>
+        </div>
+        <div style="text-align:right">
+          <div class="verdict-label">Composite score</div>
+          <div class="score-num" id="score-num"></div>
+          <div class="score-denom">out of 100</div>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Position sizing rule</div>
+      <div class="sizing-text" id="sizing-text"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Signal breakdown</div>
+      <div id="signals"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Key alert</div>
+      <div class="alert-text" id="alert-text"></div>
+    </div>
+
+  </div>
+
+  <div class="footer">SwingEdge Pro &mdash; Your Edge. Every Week.</div>
+
+</div>
+
+<script>
+function calculate() {
+  var m9   = parseFloat(document.getElementById('m9').value)   || 0;
+  var e200 = parseFloat(document.getElementById('e200').value) || 0;
+  var e50  = parseFloat(document.getElementById('e50').value)  || 0;
+  var e20  = parseFloat(document.getElementById('e20').value)  || 0;
+  var e10  = parseFloat(document.getElementById('e10').value)  || 0;
+
+  var score = Math.round(
+    Math.min(m9 / 300, 1) * 35 +
+    (e200 / 100) * 30 +
+    (e50  / 100) * 20 +
+    (e20  / 100) * 10 +
+    (e10  / 100) * 5
+  );
+
+  var bullConfirmed = e200 >= 50;
+  var stLeader      = m9 >= 150;
+  var stWeak        = e10 < 40;
+  var divergence    = (e50 >= 70 || e20 >= 70) && e200 < 50;
+
+  var verdict, sub, color, bg, sizing;
+
+  if (score >= 75 && bullConfirmed) {
+    verdict = "Full bull";             color = "#22c55e"; bg = "rgba(34,197,94,0.08)";
+    sub     = "Broad participation confirmed. Leaders strong.";
+    sizing  = "Full position sizing. All setups eligible — ELITE, PRIME, STRONG.";
+  } else if (score >= 60 && bullConfirmed) {
+    verdict = "Healthy bull";          color = "#4ade80"; bg = "rgba(74,222,128,0.08)";
+    sub     = "Bull confirmed. Some short-term softness.";
+    sizing  = "Normal sizing — 75 to 100% of planned position. ELITE and PRIME setups.";
+  } else if (score >= 50 && !bullConfirmed && stLeader) {
+    verdict = "Selective bull";        color = "#f59e0b"; bg = "rgba(245,158,11,0.08)";
+    sub     = "Leaders strong. Broad market not yet confirmed.";
+    sizing  = "Half size — ELITE setups only. Wait for % above 200 EMA to cross 50%.";
+  } else if (score >= 40) {
+    verdict = "Choppy / recovering";   color = "#fb923c"; bg = "rgba(251,146,60,0.08)";
+    sub     = "Mixed signals. Be very selective.";
+    sizing  = "25 to 50% size — ELITE only. Tight stops. Reduce on any failed breakout.";
+  } else if (score >= 25) {
+    verdict = "Weak / correction";     color = "#ef4444"; bg = "rgba(239,68,68,0.08)";
+    sub     = "Avoid new longs. Protect capital.";
+    sizing  = "No new trades. Exit weak positions. Raise cash.";
+  } else {
+    verdict = "Bear / avoid";          color = "#dc2626"; bg = "rgba(220,38,38,0.10)";
+    sub     = "Cash is a position. Stay out.";
+    sizing  = "100% cash. No longs under any circumstance.";
+  }
+
+  var vc = document.getElementById('verdict-card');
+  vc.style.background = bg;
+  vc.style.borderColor = color + '33';
+
+  document.getElementById('verdict-name').textContent = verdict;
+  document.getElementById('verdict-name').style.color = color;
+  document.getElementById('verdict-sub').textContent  = sub;
+  document.getElementById('score-num').textContent    = score;
+  document.getElementById('score-num').style.color    = color;
+  document.getElementById('progress-fill').style.width      = score + '%';
+  document.getElementById('progress-fill').style.background = color;
+  document.getElementById('sizing-text').textContent  = sizing;
+
+  var signals = [
+    { label: '9/9 Minervini count', val: m9.toFixed(0),        ok: m9 >= 150,   warn: m9 >= 80,   note: m9 >= 200 ? 'Super bull' : m9 >= 150 ? 'Strong leaders' : m9 >= 80 ? 'Moderate' : 'Weak leadership' },
+    { label: '% above 200 EMA',     val: e200.toFixed(1) + '%', ok: e200 >= 50,  warn: e200 >= 35, note: e200 >= 50 ? 'Bull confirmed' : e200 >= 35 ? 'Near threshold' : 'Not confirmed' },
+    { label: '% above 50 EMA',      val: e50.toFixed(1) + '%',  ok: e50 >= 60,   warn: e50 >= 40,  note: e50 >= 80 ? 'Overbought' : e50 >= 60 ? 'Healthy' : 'Weak' },
+    { label: '% above 20 EMA',      val: e20.toFixed(1) + '%',  ok: e20 >= 55,   warn: e20 >= 35,  note: e20 >= 80 ? 'Overbought ST' : e20 >= 55 ? 'Healthy' : 'Weakening' },
+    { label: '% above 10 EMA',      val: e10.toFixed(1) + '%',  ok: e10 >= 50,   warn: e10 >= 30,  note: e10 < 40 ? 'Pullback risk' : e10 >= 70 ? 'Overbought' : 'Neutral' },
+  ];
+
+  var html = '';
+  signals.forEach(function(s) {
+    var dot = s.ok ? '#22c55e' : (s.warn ? '#f59e0b' : '#ef4444');
+    html += '<div class="signal-row">';
+    html += '<div class="signal-left">';
+    html += '<div class="dot" style="background:' + dot + '"></div>';
+    html += '<span class="signal-name">' + s.label + '</span>';
+    html += '</div>';
+    html += '<div class="signal-right">';
+    html += '<span class="signal-val" style="color:' + dot + '">' + s.val + '</span>';
+    html += '<span class="signal-note">' + s.note + '</span>';
+    html += '</div></div>';
+  });
+  document.getElementById('signals').innerHTML = html;
+
+  var alert;
+  if (divergence) {
+    alert = 'Divergence detected — short/medium breadth (' + e20.toFixed(1) + '% / ' + e50.toFixed(1) + '%) is elevated but long term breadth (' + e200.toFixed(1) + '%) has not confirmed. Index may be running on narrow leadership. Watch for failed breakouts and reduce new entries.';
+  } else if (stWeak && stLeader) {
+    alert = 'Short term breadth weakening (' + e10.toFixed(1) + '%) while Minervini leaders remain strong (' + m9.toFixed(0) + ' stocks). Leaders holding but broader market pulling back. Reduce new entries, protect open positions with tighter stops.';
+  } else if (bullConfirmed && stLeader) {
+    alert = 'Both Minervini leaders and long term breadth are aligned. This is the ideal environment. Prioritize ELITE setups with full conviction.';
+  } else if (!bullConfirmed && e200 >= 40) {
+    alert = '% above 200 EMA at ' + e200.toFixed(1) + '% — approaching the 50% bull confirmation threshold. Watch closely. A cross above 50% is a major regime change signal for your system.';
+  } else {
+    alert = 'Mixed conditions. Let the 200 EMA breadth be your primary guide — stay defensive until it crosses 50%.';
+  }
+  document.getElementById('alert-text').textContent = alert;
+  document.getElementById('output').style.display = 'block';
+}
+
+calculate();
+</script>
+</body>
+</html>
+""", height=900, scrolling=True)
+
+# ── SCORE GUIDE ───────────────────────────────────────────────
+elif st.session_state.page == "score_guide":
+    if st.button("← Back to Portal", key="back_sg"):
+        st.session_state.page = "home"
+        st.rerun()
+    st.components.v1.html("""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwingEdge Pro — Market Verdict Score Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Geist:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold: #c9a84c; --gold-light: #e8c97a; --gold-dim: #8a6e2f;
+  --navy: #080e1a; --navy-2: #0d1626; --navy-3: #111f35; --navy-4: #1a2d47;
+  --text: #dde4f0; --text-dim: #7a8fa8; --text-muted: #3d5470;
+  --green: #3dd68c; --amber: #f5a623; --red: #f04e4e; --teal: #2dd4bf;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--navy); color: var(--text); font-family: 'Geist', sans-serif; font-weight: 300; line-height: 1.7; min-height: 100vh; }
+.page { max-width: 860px; margin: 0 auto; padding: 3rem 2rem 4rem; }
+.top-rule { display: flex; align-items: center; gap: 1rem; margin-bottom: 2.5rem; }
+.top-rule::before { content: ''; flex: 1; height: 0.5px; background: linear-gradient(90deg, transparent, var(--gold-dim)); }
+.top-rule::after  { content: ''; flex: 1; height: 0.5px; background: linear-gradient(90deg, var(--gold-dim), transparent); }
+.top-rule span { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; color: var(--gold-dim); text-transform: uppercase; white-space: nowrap; }
+.masthead { text-align: center; margin-bottom: 3rem; }
+.masthead .brand { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; color: var(--gold); text-transform: uppercase; margin-bottom: 1rem; }
+.masthead h1 { font-family: 'Instrument Serif', serif; font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 400; color: var(--text); line-height: 1.15; margin-bottom: 0.75rem; }
+.masthead h1 em { font-style: italic; color: var(--gold-light); }
+.masthead .subtitle { font-size: 14px; color: var(--text-dim); max-width: 520px; margin: 0 auto; }
+.score-hero { background: var(--navy-2); border: 0.5px solid var(--navy-4); border-radius: 16px; padding: 2rem; margin-bottom: 2.5rem; position: relative; overflow: hidden; }
+.score-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
+.score-hero-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.18em; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 1.25rem; }
+.score-track { position: relative; height: 28px; background: var(--navy-3); border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem; display: flex; }
+.score-segment { display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.06em; }
+.score-labels { display: flex; justify-content: space-between; margin-top: 0.5rem; }
+.score-labels span { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); }
+.seg-bear   { width: 25%; background: rgba(240,78,78,0.25);  color: #f04e4e; }
+.seg-chop   { width: 15%; background: rgba(245,166,35,0.2);  color: #f5a623; }
+.seg-recov  { width: 15%; background: rgba(245,166,35,0.15); color: #f5c94e; }
+.seg-bull   { width: 20%; background: rgba(61,214,140,0.15); color: #3dd68c; }
+.seg-strong { width: 25%; background: rgba(61,214,140,0.25); color: #2dd4bf; }
+.divider { display: flex; align-items: center; gap: 1rem; margin: 2rem 0; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 0.5px; background: var(--navy-4); }
+.divider span { font-family: 'Instrument Serif', serif; font-size: 11px; font-style: italic; color: var(--text-muted); }
+.section-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.18em; color: var(--gold); text-transform: uppercase; margin-bottom: 1.25rem; }
+.level-row { display: grid; grid-template-columns: 80px 150px 1fr 1fr; gap: 0; border-bottom: 0.5px solid var(--navy-4); padding: 0.85rem 0; align-items: start; }
+.level-row:first-child { border-top: 0.5px solid var(--navy-4); }
+.level-score { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; padding-right: 1rem; }
+.level-name  { font-size: 13px; font-weight: 500; padding-right: 1rem; }
+.level-meaning { font-size: 12px; color: var(--text-dim); padding-right: 1rem; line-height: 1.5; }
+.level-action  { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 2.5rem; }
+.input-card { background: var(--navy-2); border: 0.5px solid var(--navy-4); border-radius: 10px; padding: 1rem 1.25rem; }
+.input-card-wide { grid-column: 1 / -1; }
+.ic-label  { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 4px; }
+.ic-weight { font-size: 22px; font-weight: 500; color: var(--gold-light); line-height: 1; margin-bottom: 4px; }
+.ic-source { font-size: 11px; color: var(--text-muted); }
+.ic-note   { font-size: 12px; color: var(--text-dim); margin-top: 6px; line-height: 1.4; }
+.highlight-box { background: var(--navy-2); border: 0.5px solid var(--gold-dim); border-radius: 12px; padding: 1.5rem; margin-bottom: 2.5rem; position: relative; overflow: hidden; }
+.highlight-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.hb-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.18em; color: var(--gold); text-transform: uppercase; margin-bottom: 0.75rem; }
+.hb-title { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text); margin-bottom: 0.5rem; }
+.hb-body  { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+.hb-number { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--gold-light); background: var(--navy-3); display: inline-block; padding: 2px 8px; border-radius: 4px; margin: 0 2px; }
+.divergence-box { background: rgba(245,166,35,0.06); border: 0.5px solid rgba(245,166,35,0.25); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 2.5rem; }
+.div-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; color: var(--amber); text-transform: uppercase; margin-bottom: 0.75rem; }
+.div-body  { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+.div-body strong { color: var(--text); font-weight: 500; }
+.workflow-step { display: flex; gap: 1.25rem; padding: 0.85rem 0; border-bottom: 0.5px solid var(--navy-4); align-items: flex-start; }
+.workflow-step:first-child { border-top: 0.5px solid var(--navy-4); }
+.ws-num    { font-family: 'Instrument Serif', serif; font-size: 20px; font-style: italic; color: var(--gold-dim); min-width: 28px; line-height: 1; padding-top: 2px; }
+.ws-title  { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.ws-detail { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.rule { display: flex; gap: 1rem; padding: 0.85rem 0; border-bottom: 0.5px solid var(--navy-4); align-items: flex-start; }
+.rule:first-child { border-top: 0.5px solid var(--navy-4); }
+.rule-num  { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--gold-dim); min-width: 24px; padding-top: 2px; }
+.rule-text { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+.rule-text strong { color: var(--text); font-weight: 500; }
+.limit-item { display: flex; gap: 0.75rem; padding: 0.6rem 0; font-size: 13px; color: var(--text-dim); border-bottom: 0.5px solid var(--navy-4); line-height: 1.5; align-items: flex-start; }
+.limit-item:first-child { border-top: 0.5px solid var(--navy-4); }
+.limit-x { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--red); padding-top: 2px; flex-shrink: 0; }
+.tagline { text-align: center; padding: 2rem 0 0; border-top: 0.5px solid var(--navy-4); }
+.tagline p { font-family: 'Instrument Serif', serif; font-size: 15px; font-style: italic; color: var(--text-muted); }
+.tagline strong { font-style: normal; color: var(--gold); font-weight: 400; }
+.mb-25 { margin-bottom: 2.5rem; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="top-rule"><span>Knowledge Pager</span></div>
+
+<div class="masthead">
+  <div class="brand">SwingEdge Pro &mdash; Market Intelligence</div>
+  <h1>The Market Verdict<br><em>Score Explained</em></h1>
+  <p class="subtitle">A composite breadth score that tells you how much risk to take. Not what the market will do, but how confidently to act right now.</p>
+</div>
+
+<div class="score-hero">
+  <div class="score-hero-label">Composite score range &mdash; 0 to 100</div>
+  <div class="score-track">
+    <div class="score-segment seg-bear">Bear</div>
+    <div class="score-segment seg-chop">Choppy</div>
+    <div class="score-segment seg-recov">Recov</div>
+    <div class="score-segment seg-bull">Bull</div>
+    <div class="score-segment seg-strong">Strong Bull</div>
+  </div>
+  <div class="score-labels">
+    <span>0</span><span>25</span><span>40</span><span>55</span><span>65</span><span>80</span><span>100</span>
+  </div>
+</div>
+
+<div class="section-title">Score levels and what they mean</div>
+<div class="mb-25">
+  <div class="level-row">
+    <div class="level-score" style="color:#f04e4e">0 to 25</div>
+    <div class="level-name" style="color:#f04e4e">Bear / avoid</div>
+    <div class="level-meaning">Market structure broken. Most stocks in downtrend. Rallies are traps.</div>
+    <div class="level-action">100% cash. No longs under any circumstance.</div>
+  </div>
+  <div class="level-row">
+    <div class="level-score" style="color:#f5a623">25 to 40</div>
+    <div class="level-name" style="color:#f5a623">Weak / correction</div>
+    <div class="level-meaning">Breadth deteriorating. Leaders struggling to hold breakouts.</div>
+    <div class="level-action">No new trades. Tighten stops on all open positions.</div>
+  </div>
+  <div class="level-row">
+    <div class="level-score" style="color:#f5c94e">40 to 55</div>
+    <div class="level-name" style="color:#f5c94e">Choppy / recovering</div>
+    <div class="level-meaning">Mixed signals. Some leaders working, most stocks going nowhere.</div>
+    <div class="level-action">ELITE only. 25 to 50% size. Exit fast on failures.</div>
+  </div>
+  <div class="level-row">
+    <div class="level-score" style="color:#3dd68c">55 to 65</div>
+    <div class="level-name" style="color:#3dd68c">Selective bull</div>
+    <div class="level-meaning">Strong leadership present. Broad market not yet fully confirmed.</div>
+    <div class="level-action">ELITE and PRIME. Half to 75% size. Watch 200 EMA breadth.</div>
+  </div>
+  <div class="level-row">
+    <div class="level-score" style="color:#3dd68c">65 to 80</div>
+    <div class="level-name" style="color:#3dd68c">Healthy bull</div>
+    <div class="level-meaning">Leaders strong. Breadth improving. Most breakouts sustaining.</div>
+    <div class="level-action">ELITE, PRIME, STRONG. Normal sizing 75 to 100%.</div>
+  </div>
+  <div class="level-row">
+    <div class="level-score" style="color:#2dd4bf">80 to 100</div>
+    <div class="level-name" style="color:#2dd4bf">Full bull</div>
+    <div class="level-meaning">Broad participation confirmed. Even average setups working.</div>
+    <div class="level-action">All setups. Full positions. Add to winners aggressively.</div>
+  </div>
+</div>
+
+<div class="divider"><span>the five inputs</span></div>
+
+<div class="section-title">How the score is built</div>
+<div class="inputs-grid">
+  <div class="input-card input-card-wide">
+    <div class="ic-label">9/9 Minervini count &mdash; 35 points</div>
+    <div class="ic-weight">35%</div>
+    <div class="ic-source">Source: SwingEdge Python scanner (automatic after 3:30 PM)</div>
+    <div class="ic-note">Stocks passing all 9 Minervini SEPA conditions. Measures leadership quality, not quantity. Capped at 300 for scoring. Above 150 means strong leaders are present. Above 200 is super bull leadership territory.</div>
+  </div>
+  <div class="input-card">
+    <div class="ic-label">% above 200 EMA &mdash; 30 points</div>
+    <div class="ic-weight">30%</div>
+    <div class="ic-source">Source: SwingEdge scanner or Chartink table</div>
+    <div class="ic-note">The most important single input. Crossing 50% is bull market confirmation. This one number changes the entire regime verdict.</div>
+  </div>
+  <div class="input-card">
+    <div class="ic-label">% above 50 EMA &mdash; 20 points</div>
+    <div class="ic-weight">20%</div>
+    <div class="ic-source">Source: SwingEdge scanner or Chartink table</div>
+    <div class="ic-note">Medium term participation. Above 60% is healthy. Above 80% is overbought and a pause or pullback is likely soon.</div>
+  </div>
+  <div class="input-card">
+    <div class="ic-label">% above 20 EMA &mdash; 10 points</div>
+    <div class="ic-weight">10%</div>
+    <div class="ic-source">Source: Chartink Abv 20ma column</div>
+    <div class="ic-note">Short term momentum. Fast-moving. Dropping below 40% from high levels signals near-term weakness even in a bull market.</div>
+  </div>
+  <div class="input-card">
+    <div class="ic-label">% above 10 EMA &mdash; 5 points</div>
+    <div class="ic-weight">5%</div>
+    <div class="ic-source">Source: Chartink Abv 10ma column</div>
+    <div class="ic-note">Shortest term pulse. Drops and recovers quickly. Sharp fall signals a 3 to 7 day shakeout coming. Do not panic sell on this alone.</div>
+  </div>
+</div>
+
+<div class="divider"><span>the number that matters most</span></div>
+
+<div class="highlight-box">
+  <div class="hb-eyebrow">Critical threshold</div>
+  <div class="hb-title">% stocks above 200 EMA crossing 50%</div>
+  <div class="hb-body">
+    This is the single most important signal in the entire system. When less than half the market is above its 200 EMA, you are in a <span class="hb-number">recovery or correction</span> regime regardless of what the index is doing. When it crosses <span class="hb-number">50%</span>, the bull market is officially confirmed. Increase position sizes, widen stops, let winners run. Watch this number daily. Right now at <span class="hb-number">46.5%</span> you are 3.5 points from a regime change.
+  </div>
+</div>
+
+<div class="divergence-box">
+  <div class="div-title">Divergence alert &mdash; the hidden warning signal</div>
+  <div class="div-body">A divergence occurs when <strong>short or medium term breadth is elevated above 70%</strong> but <strong>long term breadth is still below 50%</strong>. This means the index is being carried by a concentrated group of heavy stocks while most stocks quietly weaken underneath. Action when divergence is detected: <strong>do not add new positions, tighten stops on all open trades, reduce immediately on any failed breakout.</strong> This exact pattern preceded the Feb to Apr 2026 correction.</div>
+</div>
+
+<div class="section-title">Daily workflow &mdash; 5 minutes after 3:30 PM</div>
+<div class="mb-25">
+  <div class="workflow-step">
+    <div class="ws-num">1</div>
+    <div>
+      <div class="ws-title">Run your Python scanner</div>
+      <div class="ws-detail">market_breadth_engine.py calculates % above 200, 50, 20 EMA and the 9/9 Minervini count automatically from your 1,310 stock universe.</div>
+    </div>
+  </div>
+  <div class="workflow-step">
+    <div class="ws-num">2</div>
+    <div>
+      <div class="ws-title">Check Chartink for % above 10 EMA</div>
+      <div class="ws-detail">Your breadth table at chartink.com/dashboard/356290 &mdash; read today's Abv 10ma figure from the top row.</div>
+    </div>
+  </div>
+  <div class="workflow-step">
+    <div class="ws-num">3</div>
+    <div>
+      <div class="ws-title">Enter all 5 numbers into the verdict tool</div>
+      <div class="ws-detail">Open SwingEdge_Market_Verdict.html in your browser. Enter the 5 numbers. Hit calculate. Read the verdict in under 30 seconds.</div>
+    </div>
+  </div>
+  <div class="workflow-step">
+    <div class="ws-num">4</div>
+    <div>
+      <div class="ws-title">Apply the sizing rule to every trade that day</div>
+      <div class="ws-detail">Not selectively. Every new position follows the rule without exception. The score only works if you apply it consistently.</div>
+    </div>
+  </div>
+  <div class="workflow-step">
+    <div class="ws-num">5</div>
+    <div>
+      <div class="ws-title">Share the verdict with your members</div>
+      <div class="ws-detail">Post the score, verdict name, and sizing rule in the SwingEdge community. One line. Every day. Builds trust and keeps members disciplined in all market conditions.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">Non-negotiable rules</div>
+<div class="mb-25">
+  <div class="rule"><div class="rule-num">01</div><div class="rule-text"><strong>Score below 40 means zero new longs.</strong> No exceptions. Not even your highest conviction ELITE setup. The environment is not rewarding risk right now. Wait.</div></div>
+  <div class="rule"><div class="rule-num">02</div><div class="rule-text"><strong>200 EMA breadth is the regime arbiter.</strong> Until it crosses 50%, you are in selective bull at best. A high Minervini count alone cannot override this. Leaders can hold while the broad market breaks down beneath them.</div></div>
+  <div class="rule"><div class="rule-num">03</div><div class="rule-text"><strong>Score dropping 10 or more points in 3 days means reduce exposure immediately.</strong> Do not wait for stabilization. Cut size on all new entries and tighten stops on existing positions.</div></div>
+  <div class="rule"><div class="rule-num">04</div><div class="rule-text"><strong>When 10 EMA breadth drops below 40%, expect a 3 to 7 day shakeout.</strong> Even in a healthy bull market. Use the dip to find better entries, not to panic sell strong positions.</div></div>
+  <div class="rule"><div class="rule-num">05</div><div class="rule-text"><strong>The score is a risk filter, not a buy signal.</strong> A score of 75 does not mean buy anything. It means the environment supports full-sized positions in your best quality setups only.</div></div>
+</div>
+
+<div class="section-title">What this score cannot do</div>
+<div class="mb-25">
+  <div class="limit-item"><span class="limit-x">x</span>Predict market direction or how long any regime will last.</div>
+  <div class="limit-item"><span class="limit-x">x</span>Tell you which specific stocks to buy or exactly when to enter them.</div>
+  <div class="limit-item"><span class="limit-x">x</span>Prevent drawdowns &mdash; even a score of 80 does not guarantee breakouts work.</div>
+  <div class="limit-item"><span class="limit-x">x</span>Replace your chart reading, RS analysis, or setup quality judgment.</div>
+  <div class="limit-item"><span class="limit-x">x</span>Account for sudden macro shocks, geopolitical events, or circuit breakers.</div>
+</div>
+
+<div class="tagline">
+  <p><strong>SwingEdge Pro</strong> &mdash; Your Edge. Every Week.</p>
+</div>
+
+</div>
+</body>
+</html>
+""", height=900, scrolling=True)
 
 # ── BOTTOM BOUNCE DASHBOARD ───────────────────────────────────
 elif st.session_state.page == "bottom_bounce":
